@@ -1,0 +1,30 @@
+<div style="text-align: center; margin-bottom: 40px;">
+  <h1 style="font-size: 2.8rem; background: linear-gradient(135deg, #bb86fc, #03dac5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">
+    <%= title %>
+  </h1>
+  <p style="font-size: 1.2rem; color: #aaa;">Hola, <strong><%= user.name %></strong>. Disfruta la experiencia oscura.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-top: 40px;">
+  <div style="background: #1e1e1e; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s, box-shadow 0.3s; cursor: default;"
+       onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(187,134,252,0.2)'"
+       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'">
+    <div style="font-size: 2rem; margin-bottom: 15px;">🌙</div>
+    <h3>Vista Nocturna</h3>
+    <p style="color: #aaa; margin-top: 10px;">Protege tus ojos con nuestro tema oscuro optimizado.</p>
+  </div>
+  <div style="background: #1e1e1e; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s, box-shadow 0.3s; cursor: default;"
+       onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(187,134,252,0.2)'"
+       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'">
+    <div style="font-size: 2rem; margin-bottom: 15px;">💡</div>
+    <h3>Contraste</h3>
+    <p style="color: #aaa; margin-top: 10px;">Colores cuidadosamente elegidos para una legibilidad perfecta.</p>
+  </div>
+  <div style="background: #1e1e1e; border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s, box-shadow 0.3s; cursor: default;"
+       onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(187,134,252,0.2)'"
+       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.5)'">
+    <div style="font-size: 2rem; margin-bottom: 15px;">⚡</div>
+    <h3>Rendimiento</h3>
+    <p style="color: #aaa; margin-top: 10px;">La misma velocidad, ahora con más estilo.</p>
+  </div>
+</div>

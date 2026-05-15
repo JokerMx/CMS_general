@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <style>
+    /* ===== VARIABLES CSS (tema claro por defecto) ===== */
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #555;
+      --header-bg: white;
+      --footer-bg: white;
+      --shadow: rgba(0,0,0,0.08);
+      --accent: #667eea;
+      --accent2: #764ba2;
+    }
+    /* ===== MODO OSCURO ===== */
+    .dark-theme {
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #e0e0e0;
+      --text-secondary: #aaa;
+      --header-bg: #1f1f1f;
+      --footer-bg: #1f1f1f;
+      --shadow: rgba(0,0,0,0.5);
+      --accent: #bb86fc;
+      --accent2: #03dac5;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.3s, color 0.3s;
+    }
+    main {
+      flex: 1;
+      padding: 30px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+      animation: fadeIn 0.6s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="<%= theme === 'dark' ? 'dark-theme' : '' %>">
+  <%- await include('header.ejs') %>
+  <main>
+    <%- body %>
+  </main>
+  <%- await include('footer.ejs') %>
+</body>
+</html>

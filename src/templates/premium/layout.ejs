@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | Premium</title>
+  <style>
+    /* ========== VARIABLES PREMIUM (tema claro) ========== */
+    .premium-layout {
+      --premium-bg: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --premium-card-bg: rgba(255,255,255,0.25);
+      --premium-text: #2d2d2d;
+      --premium-accent: #d23669;
+      --premium-header-bg: rgba(255,255,255,0.5);
+    }
+
+    /* ========== MODO OSCURO ========== */
+    .dark-theme .premium-layout {
+      --premium-bg: linear-gradient(135deg, #2c1a3b 0%, #1a0f2e 100%);
+      --premium-card-bg: rgba(30,30,30,0.6);
+      --premium-text: #e0d0f0;
+      --premium-accent: #ff6b9d;
+      --premium-header-bg: rgba(20,20,30,0.7);
+    }
+
+    /* ========== ESTILOS BASE ========== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      background: #222; /* fallback oscuro neutro, aunque no debería verse */
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* El contenedor principal maneja todo el diseño y el fondo */
+    .premium-layout {
+      background: var(--premium-bg);
+      color: var(--premium-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(10px);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    main {
+      flex: 1;
+      padding: 40px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+      animation: slideUp 0.8s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="<%= theme === 'dark' ? 'dark-theme' : '' %>">
+  <div class="premium-layout">
+    <%- await include('header.ejs') %>
+    <main>
+      <%- body %>
+    </main>
+    <footer style="background: var(--premium-header-bg); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.6); padding: 20px; text-align: center; color: var(--premium-text); margin-top: auto;">
+      <p>✨ Experiencia Premium © 2026 – Hecho con dedicación</p>
+    </footer>
+  </div>
+</body>
+</html>
