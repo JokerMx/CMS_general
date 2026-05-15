@@ -48,16 +48,16 @@ app.get('/', async (req, res) => {
   try {
     let profile = null;
     let projects = [];
-    let techStack = [];
+    let allTechStack = [];
 
     if (githubService) {
       try {
-        [profile, projects, techStack] = await Promise.all([
+        [profile, projects, allTechStack] = await Promise.all([
           githubService.getProfileStats(),
           githubService.getPortfolioProjects(),
           githubService.getDynamicTechStack()
         ]);
-        console.log(`✅ GitHub: ${projects.length} proyectos, ${techStack.length} tecnologías`);
+        console.log(`✅ GitHub: ${projects.length} proyectos, ${allTechStack.length} tecnologías totales`);
       } catch (githubError) {
         console.error('⚠️  Error GitHub:', githubError.message);
       }
@@ -76,32 +76,36 @@ app.get('/', async (req, res) => {
 
     if (projects.length === 0) {
       projects = [
-        { id: 1, name: 'ecommerce-api', fullName: 'devcraft/ecommerce-api', description: 'API RESTful para e-commerce con Node.js y MongoDB', url: 'https://github.com', language: 'JavaScript', stars: 24, forks: 8, openIssues: 2, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'Node.js', color: '#339933' }, { name: 'MongoDB', color: '#47a248' }] },
-        { id: 2, name: 'react-dashboard', fullName: 'devcraft/react-dashboard', description: 'Dashboard con React, TypeScript y gráficos en tiempo real', url: 'https://github.com', language: 'TypeScript', stars: 18, forks: 5, openIssues: 1, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'React', color: '#61dafb' }, { name: 'TypeScript', color: '#3178c6' }] },
-        { id: 3, name: 'ai-chatbot', fullName: 'devcraft/ai-chatbot', description: 'Chatbot con NLP y machine learning en Python', url: 'https://github.com', language: 'Python', stars: 32, forks: 12, openIssues: 3, isPrivate: true, license: 'GPL-3.0', defaultBranch: 'main', techBadges: [{ name: 'Python', color: '#3776ab' }, { name: 'AWS', color: '#ff9900' }] },
-        { id: 4, name: 'mobile-app', fullName: 'devcraft/mobile-app', description: 'App móvil con React Native y Firebase', url: 'https://github.com', language: 'JavaScript', stars: 15, forks: 4, openIssues: 0, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'React Native', color: '#61dafb' }, { name: 'Firebase', color: '#ffca28' }] },
-        { id: 5, name: 'devops-tools', fullName: 'devcraft/devops-tools', description: 'Herramientas DevOps con Docker y Kubernetes', url: 'https://github.com', language: 'Go', stars: 28, forks: 10, openIssues: 2, isPrivate: false, license: 'Apache-2.0', defaultBranch: 'main', techBadges: [{ name: 'Docker', color: '#2496ed' }, { name: 'Kubernetes', color: '#326ce5' }] },
-        { id: 6, name: 'landing-builder', fullName: 'devcraft/landing-builder', description: 'Constructor de landing pages con Next.js', url: 'https://github.com', language: 'TypeScript', stars: 22, forks: 7, openIssues: 1, isPrivate: true, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'Next.js', color: '#000000' }, { name: 'Tailwind', color: '#06b6d4' }] }
+        { id: 1, name: 'ecommerce-api', fullName: 'devcraft/ecommerce-api', description: 'API RESTful para e-commerce con Node.js y MongoDB', url: 'https://github.com', language: 'JavaScript', stars: 24, forks: 8, openIssues: 2, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'Node.js', color: '#339933' }, { name: 'MongoDB', color: '#47a248' }, { name: 'Docker', color: '#2496ed' }] },
+        { id: 2, name: 'react-dashboard', fullName: 'devcraft/react-dashboard', description: 'Dashboard con React, TypeScript y gráficos', url: 'https://github.com', language: 'TypeScript', stars: 18, forks: 5, openIssues: 1, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'React', color: '#61dafb' }, { name: 'TypeScript', color: '#3178c6' }, { name: 'GraphQL', color: '#e10098' }] },
+        { id: 3, name: 'ai-chatbot', fullName: 'devcraft/ai-chatbot', description: 'Chatbot con NLP y machine learning', url: 'https://github.com', language: 'Python', stars: 32, forks: 12, openIssues: 3, isPrivate: true, license: 'GPL-3.0', defaultBranch: 'main', techBadges: [{ name: 'Python', color: '#3776ab' }, { name: 'AWS', color: '#ff9900' }, { name: 'Docker', color: '#2496ed' }] },
+        { id: 4, name: 'mobile-app', fullName: 'devcraft/mobile-app', description: 'App móvil con React Native', url: 'https://github.com', language: 'JavaScript', stars: 15, forks: 4, openIssues: 0, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'React Native', color: '#61dafb' }, { name: 'Firebase', color: '#ffca28' }] },
+        { id: 5, name: 'devops-tools', fullName: 'devcraft/devops-tools', description: 'Herramientas DevOps con Docker y K8s', url: 'https://github.com', language: 'Go', stars: 28, forks: 10, openIssues: 2, isPrivate: false, license: 'Apache-2.0', defaultBranch: 'main', techBadges: [{ name: 'Docker', color: '#2496ed' }, { name: 'Kubernetes', color: '#326ce5' }] },
+        { id: 6, name: 'landing-builder', fullName: 'devcraft/landing-builder', description: 'Constructor de landing pages', url: 'https://github.com', language: 'TypeScript', stars: 22, forks: 7, openIssues: 1, isPrivate: true, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'Next.js', color: '#000000' }, { name: 'Tailwind CSS', color: '#06b6d4' }] }
       ];
     }
 
-    if (techStack.length === 0) {
-      techStack = [
-        { name: 'JavaScript', level: 95, color: '#f7df1e', icon: '📜', count: 15, stars: 120 },
-        { name: 'TypeScript', level: 88, color: '#3178c6', icon: '🔷', count: 10, stars: 85 },
-        { name: 'React', level: 90, color: '#61dafb', icon: '⚛️', count: 8, stars: 95 },
-        { name: 'Node.js', level: 85, color: '#339933', icon: '💚', count: 12, stars: 70 },
-        { name: 'Python', level: 82, color: '#3776ab', icon: '🐍', count: 6, stars: 55 },
-        { name: 'Docker', level: 78, color: '#2496ed', icon: '🐳', count: 9, stars: 40 }
-      ];
-    }
-
-    // 🆕 Filtrar proyectos según el plan
+    // 🆕 Filtrar proyectos según el plan y selección
     const filteredProjects = planService.filterProjectsByPlan(
       projects,
       req.userPlan.id,
       req.selectedProjects
     );
+
+    console.log(`📦 Mostrando ${filteredProjects.length} proyectos (Plan: ${req.userPlan.name})`);
+
+    // 🆕 Generar stack tecnológico basado SOLO en los proyectos visibles
+    let filteredTechStack = [];
+    if (filteredProjects.length > 0) {
+      if (githubService) {
+        filteredTechStack = githubService.getFilteredTechStack(filteredProjects);
+      } else {
+        // Stack de ejemplo basado en proyectos visibles
+        filteredTechStack = githubService ? githubService.getFilteredTechStack(filteredProjects) : getExampleTechStack(filteredProjects);
+      }
+    }
+
+    console.log(`📊 Stack tecnológico: ${filteredTechStack.length} tecnologías detectadas`);
 
     const data = {
       title: 'DevCraft Studio | Desarrollo de Software Profesional',
@@ -109,8 +113,8 @@ app.get('/', async (req, res) => {
       currentYear: new Date().getFullYear(),
       profile,
       projects: filteredProjects,
-      allProjects: projects, // Todos los proyectos para el selector
-      techStack,
+      allProjects: projects,
+      techStack: filteredTechStack,
       userPlan: req.userPlan,
       selectedProjects: req.selectedProjects,
       plans: planService.getAllPlans(),
@@ -133,6 +137,54 @@ app.get('/', async (req, res) => {
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
   }
 });
+
+// 🆕 Función auxiliar para stack de ejemplo basado en proyectos visibles
+function getExampleTechStack(filteredProjects) {
+  const techColors = {
+    'JavaScript': '#f7df1e', 'TypeScript': '#3178c6', 'Python': '#3776ab',
+    'React': '#61dafb', 'Node.js': '#339933', 'Docker': '#2496ed',
+    'MongoDB': '#47a248', 'GraphQL': '#e10098', 'AWS': '#ff9900',
+    'Kubernetes': '#326ce5', 'Next.js': '#000000', 'Tailwind CSS': '#06b6d4',
+    'React Native': '#61dafb'
+  };
+  const icons = {
+    'JavaScript': '📜', 'TypeScript': '🔷', 'Python': '🐍',
+    'React': '⚛️', 'Node.js': '💚', 'Docker': '🐳',
+    'MongoDB': '🍃', 'GraphQL': '◈', 'AWS': '☁️',
+    'Kubernetes': '☸️', 'Next.js': '▲', 'Tailwind CSS': '🌊',
+    'React Native': '📱'
+  };
+
+  const techCount = {};
+  filteredProjects.forEach(project => {
+    if (project.language) {
+      techCount[project.language] = (techCount[project.language] || 0) + 1;
+    }
+    if (project.techBadges) {
+      project.techBadges.forEach(badge => {
+        if (badge.name) {
+          techCount[badge.name] = (techCount[badge.name] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  const total = filteredProjects.length;
+  return Object.entries(techCount)
+    .map(([name, count]) => ({
+      name,
+      level: Math.min(Math.round((count / total) * 100), 100),
+      count,
+      stars: 0,
+      reposCount: count,
+      color: techColors[name] || '#6c5ce7',
+      icon: icons[name] || '💻',
+      repos: [],
+      percentage: Math.round((count / total) * 100)
+    }))
+    .sort((a, b) => b.level - a.level)
+    .slice(0, 12);
+};
 
 // 🆕 Página de planes
 app.get('/plans', async (req, res) => {
@@ -250,6 +302,90 @@ app.get('/toggle-theme', (req, res) => {
 app.post('/contact', (req, res) => {
   console.log('📩 Contacto:', req.body);
   res.json({ success: true, message: '¡Mensaje recibido!' });
+});
+
+// ==========================================
+// 🆕 PANEL DE ADMINISTRACIÓN DE PROYECTOS
+// ==========================================
+
+// Página del panel de administración
+app.get('/admin', async (req, res) => {
+  try {
+    let allProjects = [];
+
+    if (githubService) {
+      try {
+        allProjects = await githubService.getPortfolioProjects();
+      } catch (error) {
+        console.error('Error al obtener proyectos:', error.message);
+      }
+    }
+
+    // Datos de ejemplo si no hay GitHub
+    if (allProjects.length === 0) {
+      allProjects = [
+        { id: 1, name: 'ecommerce-api', fullName: 'devcraft/ecommerce-api', description: 'API RESTful para e-commerce con Node.js y MongoDB', url: 'https://github.com', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, topics: ['nodejs', 'mongodb', 'api'], techBadges: [{ name: 'Node.js', color: '#339933' }, { name: 'MongoDB', color: '#47a248' }] },
+        { id: 2, name: 'react-dashboard', fullName: 'devcraft/react-dashboard', description: 'Dashboard con React, TypeScript y gráficos', url: 'https://github.com', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, topics: ['react', 'typescript'], techBadges: [{ name: 'React', color: '#61dafb' }, { name: 'TypeScript', color: '#3178c6' }] },
+        { id: 3, name: 'ai-chatbot', fullName: 'devcraft/ai-chatbot', description: 'Chatbot con NLP y machine learning', url: 'https://github.com', language: 'Python', stars: 32, forks: 12, isPrivate: true, topics: ['python', 'ai'], techBadges: [{ name: 'Python', color: '#3776ab' }, { name: 'AWS', color: '#ff9900' }] },
+        { id: 4, name: 'mobile-app', fullName: 'devcraft/mobile-app', description: 'App móvil con React Native', url: 'https://github.com', language: 'JavaScript', stars: 15, forks: 4, isPrivate: false, topics: ['react-native'], techBadges: [{ name: 'React Native', color: '#61dafb' }] },
+        { id: 5, name: 'devops-tools', fullName: 'devcraft/devops-tools', description: 'Herramientas DevOps', url: 'https://github.com', language: 'Go', stars: 28, forks: 10, isPrivate: false, topics: ['docker', 'kubernetes'], techBadges: [{ name: 'Docker', color: '#2496ed' }, { name: 'Kubernetes', color: '#326ce5' }] },
+        { id: 6, name: 'landing-builder', fullName: 'devcraft/landing-builder', description: 'Constructor de landing pages', url: 'https://github.com', language: 'TypeScript', stars: 22, forks: 7, isPrivate: true, topics: ['nextjs', 'tailwind'], techBadges: [{ name: 'Next.js', color: '#000000' }] },
+        { id: 7, name: 'api-gateway', fullName: 'devcraft/api-gateway', description: 'API Gateway con GraphQL', url: 'https://github.com', language: 'TypeScript', stars: 12, forks: 3, isPrivate: false, topics: ['graphql', 'apollo'], techBadges: [{ name: 'GraphQL', color: '#e10098' }] },
+        { id: 8, name: 'cli-tool', fullName: 'devcraft/cli-tool', description: 'Herramienta CLI en Rust', url: 'https://github.com', language: 'Rust', stars: 20, forks: 6, isPrivate: false, topics: ['rust', 'cli'], techBadges: [{ name: 'Rust', color: '#dea584' }] }
+      ];
+    }
+
+    const data = {
+      title: 'Panel de Administración | DevCraft Studio',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      allProjects,
+      userPlan: req.userPlan,
+      selectedProjects: req.selectedProjects,
+      maxProjects: req.userPlan.maxProjects === Infinity ? 999 : req.userPlan.maxProjects
+    };
+
+    const bodyHtml = await engine.render('admin.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) {
+    console.error('❌ Error en panel admin:', error.message);
+    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/admin">Reintentar</a>`);
+  }
+});
+
+// 🆕 API para guardar/obtener selección de proyectos
+app.post('/api/projects/selection', (req, res) => {
+  const { projects } = req.body;
+  
+  if (!Array.isArray(projects)) {
+    return res.status(400).json({ success: false, error: 'Formato inválido. Se esperaba un array de nombres de proyectos.' });
+  }
+
+  // Validar contra el plan del usuario
+  const userPlan = planService.getUserPlan(req);
+  if (projects.length > userPlan.maxProjects && userPlan.maxProjects !== Infinity) {
+    return res.status(400).json({ 
+      success: false, 
+      error: `Tu plan ${userPlan.name} solo permite ${userPlan.maxProjects} proyectos. Seleccionaste ${projects.length}.` 
+    });
+  }
+
+  planService.setSelectedProjectsCookie(res, projects);
+  
+  console.log(`📦 Proyectos seleccionados (${projects.length}):`, projects);
+  
+  res.json({ 
+    success: true, 
+    message: `${projects.length} proyectos guardados correctamente.`,
+    selected: projects 
+  });
+});
+
+// 🆕 API para obtener la selección actual
+app.get('/api/projects/selection', (req, res) => {
+  const selected = planService.getSelectedProjects(req);
+  res.json({ success: true, selected });
 });
 
 app.use(async (req, res) => {

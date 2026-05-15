@@ -1,93 +1,221 @@
 <section id="portfolio" style="padding: 80px 20px; background: var(--bg-secondary);">
   <div style="max-width: 1200px; margin: 0 auto;">
+    <!-- Cabecera de la sección -->
     <div style="text-align: center; margin-bottom: 60px;">
       <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
         PORTAFOLIO
       </span>
-      <h2 style="font-size: 2.5rem; margin-bottom: 15px;">Proyectos <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">destacados</span></h2>
-      <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">Haz clic en cualquier proyecto para ver más detalles y el README.</p>
+      <h2 style="font-size: 2.5rem; margin-bottom: 15px;">
+        Proyectos <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">destacados</span>
+      </h2>
+      <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 15px auto;">
+        Haz clic en cualquier proyecto para ver más detalles y el README desde GitHub.
+      </p>
+      
+      <!-- Botón de administración -->
+      <div style="margin-top: 10px;">
+        <a href="/admin" style="display: inline-flex; align-items: center; gap: 8px; background: var(--badge-bg); color: var(--accent); padding: 10px 22px; border-radius: 25px; text-decoration: none; font-size: 0.85rem; font-weight: 600; border: 1px dashed var(--accent); transition: all 0.3s;"
+           onmouseover="this.style.background='var(--accent)'; this.style.color='white'; this.style.borderStyle='solid'"
+           onmouseout="this.style.background='var(--badge-bg)'; this.style.color='var(--accent)'; this.style.borderStyle='dashed'">
+          <span>⚙️</span> Administrar Proyectos
+        </a>
+      </div>
+      
+      <!-- Info del plan actual -->
+      <% if (typeof userPlan !== 'undefined' && userPlan) { %>
+        <div style="margin-top: 15px;">
+          <span style="display: inline-flex; align-items: center; gap: 6px; background: <%= userPlan.color %>15; color: <%= userPlan.color %>; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; border: 1px solid <%= userPlan.color %>30;">
+            <%= userPlan.icon %> Plan <%= userPlan.name %> · 
+            <% if (userPlan.maxProjects === Infinity) { %>
+              Proyectos ilimitados
+            <% } else { %>
+              <%= (typeof projects !== 'undefined' ? projects.length : 0) %> / <%= userPlan.maxProjects %> proyectos
+            <% } %>
+          </span>
+        </div>
+      <% } %>
     </div>
     
+    <!-- Grid de proyectos -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;" id="projects-grid">
       <% if (typeof projects !== 'undefined' && projects.length > 0) { %>
         <% projects.forEach((project, index) => { %>
           <div class="fade-in project-card" 
-               style="animation-delay: <%= (index * 0.1) %>s; background: var(--card-bg); border-radius: 20px; padding: 30px; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid var(--border); display: flex; flex-direction: column; cursor: pointer;"
+               style="animation-delay: <%= (index * 0.1) %>s; background: var(--card-bg); border-radius: 20px; padding: 28px; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid var(--border); display: flex; flex-direction: column; cursor: pointer; position: relative; overflow: hidden;"
                onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 50px var(--accent-glow)'"
                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--card-shadow)'"
-               onclick="openProjectModal('<%= project.name %>', '<%= project.fullName || project.name %>', `<%= project.description.replace(/`/g, '\\`').replace(/'/g, "\\'") %>`, '<%= project.url %>', '<%= project.language || 'N/A' %>', <%= project.stars %>, <%= project.forks %>, <%= project.openIssues || 0 %>, '<%= project.license || 'N/A' %>')">
+               onclick="openProjectModal(
+                 '<%= project.name %>', 
+                 '<%= project.fullName || project.name %>', 
+                 `<%= (project.description || 'Sin descripción').replace(/`/g, '\\`').replace(/'/g, "\\'") %>`, 
+                 '<%= project.url %>', 
+                 '<%= project.language || 'N/A' %>', 
+                 <%= project.stars || 0 %>, 
+                 <%= project.forks || 0 %>, 
+                 <%= project.openIssues || 0 %>, 
+                 '<%= project.license || 'N/A' %>'
+               )">
             
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-              <span style="font-size: 1.5rem;"><%= project.isPrivate ? '🔒' : '📁' %></span>
-              <h3 style="font-size: 1.2rem; color: var(--text);"><%= project.name %></h3>
+            <!-- Indicador de clic -->
+            <div style="position: absolute; top: 12px; right: 12px; background: var(--badge-bg); color: var(--text-secondary); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.3s;"
+                 onmouseover="this.closest('.project-card').querySelector('.click-hint').style.opacity='1'">
+              🔍
             </div>
             
-            <p style="color: var(--text-secondary); margin-bottom: 20px; flex-grow: 1; line-height: 1.6;">
-              <%= project.description.substring(0, 100) %><%= project.description.length > 100 ? '...' : '' %>
+            <!-- Cabecera del proyecto -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+              <span style="font-size: 1.5rem; flex-shrink: 0;">
+                <%= project.isPrivate ? '🔒' : '📁' %>
+              </span>
+              <div style="min-width: 0;">
+                <h3 style="font-size: 1.15rem; color: var(--text); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <%= project.name %>
+                </h3>
+                <% if (project.homepage) { %>
+                  <a href="<%= project.homepage %>" target="_blank" 
+                     onclick="event.stopPropagation()"
+                     style="font-size: 0.75rem; color: var(--accent); text-decoration: none; display: inline-block; margin-top: 2px;"
+                     title="Demo en vivo">
+                    🔗 <%= project.homepage.replace(/https?:\/\//, '').substring(0, 30) %>
+                  </a>
+                <% } %>
+              </div>
+            </div>
+            
+            <!-- Descripción acortada -->
+            <p style="color: var(--text-secondary); margin-bottom: 20px; flex-grow: 1; line-height: 1.6; font-size: 0.95rem;">
+              <%= (project.description || 'Sin descripción').substring(0, 110) %>
+              <%= (project.description || '').length > 110 ? '...' : '' %>
             </p>
             
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+            <!-- Badges de tecnologías -->
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px;">
               <% if (project.techBadges && project.techBadges.length > 0) { %>
                 <% project.techBadges.slice(0, 3).forEach(badge => { %>
-                  <span style="background: <%= badge.color %>20; color: <%= badge.color %>; padding: 4px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; border: 1px solid <%= badge.color %>40;">
+                  <span style="background: <%= badge.color %>20; color: <%= badge.color %>; padding: 4px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 600; border: 1px solid <%= badge.color %>40;">
                     <%= badge.name %>
                   </span>
                 <% }); %>
                 <% if (project.techBadges.length > 3) { %>
-                  <span style="background: var(--badge-bg); color: var(--text-secondary); padding: 4px 10px; border-radius: 50px; font-size: 0.75rem;">+<%= project.techBadges.length - 3 %></span>
+                  <span style="background: var(--badge-bg); color: var(--text-secondary); padding: 4px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 500;">
+                    +<%= project.techBadges.length - 3 %>
+                  </span>
                 <% } %>
+              <% } else if (project.language) { %>
+                <span style="background: var(--badge-bg); color: var(--text-secondary); padding: 4px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 500;">
+                  <%= project.language %>
+                </span>
               <% } %>
             </div>
             
-            <div style="display: flex; gap: 15px; margin-bottom: 20px; color: var(--text-secondary); font-size: 0.9rem;">
-              <span>⭐ <%= project.stars %></span>
-              <span>🔀 <%= project.forks %></span>
+            <!-- Estadísticas -->
+            <div style="display: flex; gap: 12px; margin-bottom: 18px; color: var(--text-secondary); font-size: 0.85rem; flex-wrap: wrap;">
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span>⭐</span> <%= project.stars || 0 %>
+              </span>
+              <span style="display: flex; align-items: center; gap: 4px;">
+                <span>🔀</span> <%= project.forks || 0 %>
+              </span>
               <% if (project.language) { %>
-                <span>🔧 <%= project.language %></span>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <span>●</span> <%= project.language %>
+                </span>
+              <% } %>
+              <% if (project.license) { %>
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <span>📄</span> <%= project.license %>
+                </span>
               <% } %>
             </div>
             
-            <span style="display: inline-block; text-align: center; background: var(--gradient); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.2s;"
-               onmouseover="this.style.transform='scale(1.03)'"
-               onmouseout="this.style.transform='scale(1)'">
-              Ver más detalles →
-            </span>
+            <!-- Botón de acción -->
+            <div style="display: flex; gap: 10px;">
+              <span style="flex: 1; text-align: center; background: var(--gradient); color: white; padding: 10px 16px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-block;"
+                 onmouseover="this.style.transform='scale(1.03)'; this.style.opacity='0.9'"
+                 onmouseout="this.style.transform='scale(1)'; this.style.opacity='1'">
+                Ver detalles →
+              </span>
+              <a href="<%= project.url %>" target="_blank" 
+                 onclick="event.stopPropagation()"
+                 style="background: var(--badge-bg); color: var(--text); padding: 10px 14px; border-radius: 10px; text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; display: flex; align-items: center; gap: 4px; border: 1px solid var(--border);"
+                 onmouseover="this.style.background='var(--border)'"
+                 onmouseout="this.style.background='var(--badge-bg)'"
+                 title="Abrir en GitHub">
+                <span>🐙</span>
+              </a>
+            </div>
+            
+            <!-- Etiqueta de visibilidad -->
+            <% if (project.isPrivate) { %>
+              <div style="position: absolute; top: 12px; left: 12px; background: rgba(255,193,7,0.15); color: #ffc107; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                Privado
+              </div>
+            <% } %>
           </div>
         <% }); %>
       <% } else { %>
-        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">
-          <p>No se encontraron proyectos.</p>
+        <!-- Estado vacío -->
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+          <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+          <h3 style="color: var(--text); margin-bottom: 10px;">No hay proyectos para mostrar</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 25px;">
+            <% if (typeof userPlan !== 'undefined' && userPlan && userPlan.id === 'free') { %>
+              Tu plan Gratis no tiene proyectos seleccionados. 
+            <% } else { %>
+              No se encontraron proyectos en tu cuenta de GitHub.
+            <% } %>
+          </p>
+          <a href="/admin" style="display: inline-block; background: var(--gradient); color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.2s;"
+             onmouseover="this.style.transform='scale(1.05)'"
+             onmouseout="this.style.transform='scale(1)'">
+            ⚙️ Ir al Panel de Administración
+          </a>
         </div>
       <% } %>
     </div>
+    
+    <!-- Ver más en GitHub -->
+    <% if (typeof profile !== 'undefined' && profile && profile.username) { %>
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="https://github.com/<%= profile.username %>?tab=repositories" target="_blank" 
+           style="display: inline-flex; align-items: center; gap: 8px; color: var(--accent); text-decoration: none; font-weight: 600; padding: 12px 25px; border-radius: 25px; border: 2px solid var(--accent); transition: all 0.3s;"
+           onmouseover="this.style.background='var(--accent)'; this.style.color='white'"
+           onmouseout="this.style.background='transparent'; this.style.color='var(--accent)'">
+          🐙 Ver todos los repositorios en GitHub
+          <span style="font-size: 1.2rem;">→</span>
+        </a>
+      </div>
+    <% } %>
   </div>
 </section>
 
 <!-- ========================================== -->
-<!-- MODAL DE PROYECTO (SIN SCROLL PRINCIPAL) -->
+<!-- MODAL DE PROYECTO -->
 <!-- ========================================== -->
-<div id="project-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; backdrop-filter: blur(5px);">
+<div id="project-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 9999; backdrop-filter: blur(5px);">
   <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px; box-sizing: border-box;">
     <div id="modal-content" style="background: var(--card-bg); border-radius: 20px; max-width: 850px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 80px rgba(0,0,0,0.4); position: relative; animation: modalIn 0.3s ease;">
       
-      <!-- Cabecera fija con botón cerrar -->
+      <!-- Cabecera fija -->
       <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 30px 30px 0 30px; flex-shrink: 0;">
-        <div style="flex: 1;">
-          <h2 id="modal-title" style="font-size: 1.8rem; color: var(--text); margin-bottom: 5px;"></h2>
-          <p id="modal-fullname" style="color: var(--accent); font-family: monospace; font-size: 0.85rem; margin-bottom: 10px;"></p>
+        <div style="flex: 1; min-width: 0;">
+          <h2 id="modal-title" style="font-size: 1.8rem; color: var(--text); margin-bottom: 5px; word-break: break-word;"></h2>
+          <p id="modal-fullname" style="color: var(--accent); font-family: monospace; font-size: 0.85rem; margin-bottom: 0;"></p>
         </div>
-        <button onclick="closeModal()" style="background: var(--badge-bg); color: var(--text); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; margin-left: 15px; transition: transform 0.2s;"
-                onmouseover="this.style.transform='scale(1.1)'"
-                onmouseout="this.style.transform='scale(1)'">✕</button>
+        <button onclick="closeModal()" 
+                style="background: var(--badge-bg); color: var(--text); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; margin-left: 15px; transition: all 0.2s; display: flex; align-items: center; justify-content: center;"
+                onmouseover="this.style.background='#d63031'; this.style.color='white'"
+                onmouseout="this.style.background='var(--badge-bg)'; this.style.color='var(--text)'"
+                title="Cerrar">✕</button>
       </div>
       
       <!-- Descripción -->
-      <div style="padding: 0 30px 20px 30px; flex-shrink: 0;">
+      <div style="padding: 15px 30px 0 30px; flex-shrink: 0;">
         <p id="modal-description" style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;"></p>
       </div>
       
       <!-- Stats -->
-      <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 0 30px 20px 30px; flex-shrink: 0;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 20px 30px; flex-shrink: 0;">
         <div style="background: var(--badge-bg); padding: 10px 16px; border-radius: 10px; text-align: center; min-width: 60px;">
           <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="modal-stars">0</div>
           <div style="font-size: 0.7rem; color: var(--text-secondary);">⭐ Stars</div>
@@ -106,11 +234,11 @@
         </div>
       </div>
       
-      <!-- README - ÚNICO CONTENEDOR CON SCROLL -->
+      <!-- README - Scroll interno -->
       <div style="padding: 0 30px; flex: 1; min-height: 0; display: flex; flex-direction: column;">
-        <h3 style="color: var(--text); margin-bottom: 10px; font-size: 1.1rem; flex-shrink: 0;">
+        <h3 style="color: var(--text); margin-bottom: 10px; font-size: 1.1rem; flex-shrink: 0; display: flex; align-items: center; gap: 10px;">
           📄 README.md 
-          <span id="modal-readme-badge" style="display: none; font-size: 0.7rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; margin-left: 8px; font-weight: 500;"></span>
+          <span id="modal-readme-badge" style="display: none; font-size: 0.7rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; font-weight: 500;"></span>
         </h3>
         <div id="modal-readme" style="background: var(--badge-bg); border-radius: 12px; padding: 25px; overflow-y: auto; flex: 1; min-height: 0; line-height: 1.7; border: 1px solid var(--border);">
           <div style="text-align: center; padding: 20px;">
@@ -122,14 +250,16 @@
       
       <!-- Botones fijos abajo -->
       <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 20px 30px 30px 30px; flex-shrink: 0; border-top: 1px solid var(--border); margin-top: 15px;">
-        <a id="modal-github-link" href="#" target="_blank" style="background: var(--gradient); color: white; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.2s; display: inline-block;"
-           onmouseover="this.style.transform='scale(1.03)'"
-           onmouseout="this.style.transform='scale(1)'">
+        <a id="modal-github-link" href="#" target="_blank" 
+           style="background: var(--gradient); color: white; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;"
+           onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 5px 20px var(--accent-glow)'"
+           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
           🔗 Ver en GitHub
         </a>
-        <button onclick="closeModal()" style="background: var(--badge-bg); color: var(--text); padding: 12px 22px; border-radius: 10px; border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: transform 0.2s;"
-                onmouseover="this.style.transform='scale(1.03)'"
-                onmouseout="this.style.transform='scale(1)'">
+        <button onclick="closeModal()" 
+                style="background: var(--badge-bg); color: var(--text); padding: 12px 22px; border-radius: 10px; border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: all 0.2s;"
+                onmouseover="this.style.background='var(--border)'"
+                onmouseout="this.style.background='var(--badge-bg)'">
           Cerrar
         </button>
       </div>
@@ -151,13 +281,43 @@
   }
   
   /* ===== Estilos del README renderizado ===== */
-  #modal-readme h1 { font-size: 1.6rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin: 20px 0 12px; line-height: 1.3; }
-  #modal-readme h2 { font-size: 1.3rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 18px 0 10px; line-height: 1.3; }
-  #modal-readme h3 { font-size: 1.1rem; color: var(--text); margin: 15px 0 8px; }
-  #modal-readme h4 { font-size: 1rem; color: var(--text); margin: 12px 0 6px; }
-  #modal-readme p { margin-bottom: 10px; color: var(--text-secondary); }
-  #modal-readme ul, #modal-readme ol { margin: 8px 0 12px 22px; color: var(--text-secondary); }
-  #modal-readme li { margin-bottom: 4px; }
+  #modal-readme h1 { 
+    font-size: 1.6rem; 
+    color: var(--text); 
+    border-bottom: 2px solid var(--border); 
+    padding-bottom: 10px; 
+    margin: 20px 0 12px; 
+    line-height: 1.3; 
+  }
+  #modal-readme h2 { 
+    font-size: 1.3rem; 
+    color: var(--text); 
+    border-bottom: 1px solid var(--border); 
+    padding-bottom: 8px; 
+    margin: 18px 0 10px; 
+    line-height: 1.3; 
+  }
+  #modal-readme h3 { 
+    font-size: 1.1rem; 
+    color: var(--text); 
+    margin: 15px 0 8px; 
+  }
+  #modal-readme h4 { 
+    font-size: 1rem; 
+    color: var(--text); 
+    margin: 12px 0 6px; 
+  }
+  #modal-readme p { 
+    margin-bottom: 10px; 
+    color: var(--text-secondary); 
+  }
+  #modal-readme ul, #modal-readme ol { 
+    margin: 8px 0 12px 22px; 
+    color: var(--text-secondary); 
+  }
+  #modal-readme li { 
+    margin-bottom: 4px; 
+  }
   #modal-readme code { 
     background: var(--card-bg); 
     padding: 2px 7px; 
@@ -194,8 +354,15 @@
     color: var(--text-secondary);
     font-style: italic;
   }
-  #modal-readme a { color: var(--accent); text-decoration: underline; }
-  #modal-readme img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+  #modal-readme a { 
+    color: var(--accent); 
+    text-decoration: underline; 
+  }
+  #modal-readme img { 
+    max-width: 100%; 
+    border-radius: 8px; 
+    margin: 8px 0; 
+  }
   #modal-readme table {
     width: 100%;
     border-collapse: collapse;
@@ -218,14 +385,17 @@
     border-top: 1px solid var(--border);
     margin: 18px 0;
   }
-  #modal-readme strong { color: var(--text); }
+  #modal-readme strong { 
+    color: var(--text); 
+  }
   
-  /* Scrollbar estilizado para el README */
+  /* Scrollbar estilizado */
   #modal-readme::-webkit-scrollbar {
     width: 6px;
   }
   #modal-readme::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 3px;
   }
   #modal-readme::-webkit-scrollbar-thumb {
     background: var(--border);
@@ -269,6 +439,9 @@
     `;
     document.getElementById('modal-readme-badge').style.display = 'none';
     
+    // Scroll al inicio del README
+    document.getElementById('modal-readme').scrollTop = 0;
+    
     // Cargar README desde API
     fetch(`/api/readme/${encodeURIComponent(name)}`)
       .then(response => response.json())
@@ -279,6 +452,7 @@
           // Renderizar Markdown a HTML
           const htmlContent = marked.parse(data.readme);
           readmeContainer.innerHTML = htmlContent;
+          readmeContainer.scrollTop = 0;
           
           // Mostrar badge de truncado
           if (data.truncated) {
