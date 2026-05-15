@@ -1,12 +1,34 @@
-<header style="background: var(--header-bg); box-shadow: 0 2px 15px var(--shadow); position: sticky; top: 0; z-index: 100;">
-  <div style="max-width: 1000px; margin: auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-    <a href="/" style="font-size: 1.5rem; font-weight: bold; text-decoration: none; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-      ✨ Mi Plataforma
-    </a>
-    <nav style="display: flex; gap: 20px; align-items: center;">
-      <a href="/" style="color: var(--text); text-decoration:none; font-weight:500;">Inicio</a>
-      <a href="/temas" style="color: var(--text); text-decoration:none; font-weight:500;">Temas</a>
-      <a href="?theme=dark" style="background: #1e1e1e; color:white; padding:8px 15px; border-radius:20px; text-decoration:none; font-size:0.9rem;">🌙 Oscuro</a>
-    </nav>
-  </div>
+<header style="background: var(--nav-bg); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border);">
+  <nav style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/" style="font-size: 1.6rem; font-weight: 800; text-decoration: none; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
+        DevCraft<span style="background: var(--accent2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Studio</span>
+      </a>
+      <!-- Badge del plan actual -->
+      <% if (typeof userPlan !== 'undefined' && userPlan) { %>
+        <a href="/plans" style="text-decoration: none;">
+          <span style="background: <%= userPlan.color || '#6c5ce7' %>20; color: <%= userPlan.color || '#6c5ce7' %>; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid <%= userPlan.color || '#6c5ce7' %>40;">
+            <%= userPlan.icon %> <%= userPlan.name %>
+          </span>
+        </a>
+      <% } %>
+    </div>
+    
+    <ul style="display: flex; list-style: none; gap: 25px; align-items: center;">
+      <li><a href="/#hero" style="color: var(--text); text-decoration: none; font-weight: 500;">Inicio</a></li>
+      <li><a href="/#services" style="color: var(--text); text-decoration: none; font-weight: 500;">Servicios</a></li>
+      <li><a href="/#portfolio" style="color: var(--text); text-decoration: none; font-weight: 500;">Proyectos</a></li>
+      <li><a href="/#tech-stack" style="color: var(--text); text-decoration: none; font-weight: 500;">Tecnologías</a></li>
+      <li><a href="/plans" style="color: var(--accent); text-decoration: none; font-weight: 600;">Planes</a></li>
+      <li><a href="/#contact" style="color: var(--text); text-decoration: none; font-weight: 500;">Contacto</a></li>
+      <li>
+        <a href="/toggle-theme?current=<%= theme %>" style="background: var(--card-bg); padding: 8px 12px; border-radius: 50px; border: 1px solid var(--border); font-size: 1.2rem; text-decoration: none; cursor: pointer; transition: transform 0.2s; display: inline-block;"
+           onmouseover="this.style.transform='scale(1.1)'"
+           onmouseout="this.style.transform='scale(1)'"
+           title="Cambiar tema">
+          <%= theme === 'dark' ? '☀️' : '🌙' %>
+        </a>
+      </li>
+    </ul>
+  </nav>
 </header>

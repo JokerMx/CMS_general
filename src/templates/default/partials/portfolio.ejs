@@ -1,0 +1,321 @@
+<section id="portfolio" style="padding: 80px 20px; background: var(--bg-secondary);">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div style="text-align: center; margin-bottom: 60px;">
+      <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
+        PORTAFOLIO
+      </span>
+      <h2 style="font-size: 2.5rem; margin-bottom: 15px;">Proyectos <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">destacados</span></h2>
+      <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">Haz clic en cualquier proyecto para ver más detalles y el README.</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;" id="projects-grid">
+      <% if (typeof projects !== 'undefined' && projects.length > 0) { %>
+        <% projects.forEach((project, index) => { %>
+          <div class="fade-in project-card" 
+               style="animation-delay: <%= (index * 0.1) %>s; background: var(--card-bg); border-radius: 20px; padding: 30px; box-shadow: var(--card-shadow); transition: all 0.3s; border: 1px solid var(--border); display: flex; flex-direction: column; cursor: pointer;"
+               onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 50px var(--accent-glow)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--card-shadow)'"
+               onclick="openProjectModal('<%= project.name %>', '<%= project.fullName || project.name %>', `<%= project.description.replace(/`/g, '\\`').replace(/'/g, "\\'") %>`, '<%= project.url %>', '<%= project.language || 'N/A' %>', <%= project.stars %>, <%= project.forks %>, <%= project.openIssues || 0 %>, '<%= project.license || 'N/A' %>')">
+            
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+              <span style="font-size: 1.5rem;"><%= project.isPrivate ? '🔒' : '📁' %></span>
+              <h3 style="font-size: 1.2rem; color: var(--text);"><%= project.name %></h3>
+            </div>
+            
+            <p style="color: var(--text-secondary); margin-bottom: 20px; flex-grow: 1; line-height: 1.6;">
+              <%= project.description.substring(0, 100) %><%= project.description.length > 100 ? '...' : '' %>
+            </p>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+              <% if (project.techBadges && project.techBadges.length > 0) { %>
+                <% project.techBadges.slice(0, 3).forEach(badge => { %>
+                  <span style="background: <%= badge.color %>20; color: <%= badge.color %>; padding: 4px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; border: 1px solid <%= badge.color %>40;">
+                    <%= badge.name %>
+                  </span>
+                <% }); %>
+                <% if (project.techBadges.length > 3) { %>
+                  <span style="background: var(--badge-bg); color: var(--text-secondary); padding: 4px 10px; border-radius: 50px; font-size: 0.75rem;">+<%= project.techBadges.length - 3 %></span>
+                <% } %>
+              <% } %>
+            </div>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 20px; color: var(--text-secondary); font-size: 0.9rem;">
+              <span>⭐ <%= project.stars %></span>
+              <span>🔀 <%= project.forks %></span>
+              <% if (project.language) { %>
+                <span>🔧 <%= project.language %></span>
+              <% } %>
+            </div>
+            
+            <span style="display: inline-block; text-align: center; background: var(--gradient); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.2s;"
+               onmouseover="this.style.transform='scale(1.03)'"
+               onmouseout="this.style.transform='scale(1)'">
+              Ver más detalles →
+            </span>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">
+          <p>No se encontraron proyectos.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================== -->
+<!-- MODAL DE PROYECTO (SIN SCROLL PRINCIPAL) -->
+<!-- ========================================== -->
+<div id="project-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; backdrop-filter: blur(5px);">
+  <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 20px; box-sizing: border-box;">
+    <div id="modal-content" style="background: var(--card-bg); border-radius: 20px; max-width: 850px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 80px rgba(0,0,0,0.4); position: relative; animation: modalIn 0.3s ease;">
+      
+      <!-- Cabecera fija con botón cerrar -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 30px 30px 0 30px; flex-shrink: 0;">
+        <div style="flex: 1;">
+          <h2 id="modal-title" style="font-size: 1.8rem; color: var(--text); margin-bottom: 5px;"></h2>
+          <p id="modal-fullname" style="color: var(--accent); font-family: monospace; font-size: 0.85rem; margin-bottom: 10px;"></p>
+        </div>
+        <button onclick="closeModal()" style="background: var(--badge-bg); color: var(--text); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; margin-left: 15px; transition: transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.1)'"
+                onmouseout="this.style.transform='scale(1)'">✕</button>
+      </div>
+      
+      <!-- Descripción -->
+      <div style="padding: 0 30px 20px 30px; flex-shrink: 0;">
+        <p id="modal-description" style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;"></p>
+      </div>
+      
+      <!-- Stats -->
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 0 30px 20px 30px; flex-shrink: 0;">
+        <div style="background: var(--badge-bg); padding: 10px 16px; border-radius: 10px; text-align: center; min-width: 60px;">
+          <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="modal-stars">0</div>
+          <div style="font-size: 0.7rem; color: var(--text-secondary);">⭐ Stars</div>
+        </div>
+        <div style="background: var(--badge-bg); padding: 10px 16px; border-radius: 10px; text-align: center; min-width: 60px;">
+          <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="modal-forks">0</div>
+          <div style="font-size: 0.7rem; color: var(--text-secondary);">🔀 Forks</div>
+        </div>
+        <div style="background: var(--badge-bg); padding: 10px 16px; border-radius: 10px; text-align: center; min-width: 60px;">
+          <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="modal-issues">0</div>
+          <div style="font-size: 0.7rem; color: var(--text-secondary);">🐛 Issues</div>
+        </div>
+        <div style="background: var(--badge-bg); padding: 10px 16px; border-radius: 10px; text-align: center; min-width: 60px;">
+          <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent);" id="modal-license">N/A</div>
+          <div style="font-size: 0.7rem; color: var(--text-secondary);">📄 Licencia</div>
+        </div>
+      </div>
+      
+      <!-- README - ÚNICO CONTENEDOR CON SCROLL -->
+      <div style="padding: 0 30px; flex: 1; min-height: 0; display: flex; flex-direction: column;">
+        <h3 style="color: var(--text); margin-bottom: 10px; font-size: 1.1rem; flex-shrink: 0;">
+          📄 README.md 
+          <span id="modal-readme-badge" style="display: none; font-size: 0.7rem; background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; margin-left: 8px; font-weight: 500;"></span>
+        </h3>
+        <div id="modal-readme" style="background: var(--badge-bg); border-radius: 12px; padding: 25px; overflow-y: auto; flex: 1; min-height: 0; line-height: 1.7; border: 1px solid var(--border);">
+          <div style="text-align: center; padding: 20px;">
+            <p style="color: var(--text-secondary); margin-bottom: 12px;">Cargando README desde GitHub...</p>
+            <div style="width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Botones fijos abajo -->
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; padding: 20px 30px 30px 30px; flex-shrink: 0; border-top: 1px solid var(--border); margin-top: 15px;">
+        <a id="modal-github-link" href="#" target="_blank" style="background: var(--gradient); color: white; padding: 12px 22px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.2s; display: inline-block;"
+           onmouseover="this.style.transform='scale(1.03)'"
+           onmouseout="this.style.transform='scale(1)'">
+          🔗 Ver en GitHub
+        </a>
+        <button onclick="closeModal()" style="background: var(--badge-bg); color: var(--text); padding: 12px 22px; border-radius: 10px; border: 1px solid var(--border); font-weight: 600; cursor: pointer; transition: transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.03)'"
+                onmouseout="this.style.transform='scale(1)'">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Librería Marked para renderizar Markdown -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9) translateY(-15px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* ===== Estilos del README renderizado ===== */
+  #modal-readme h1 { font-size: 1.6rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin: 20px 0 12px; line-height: 1.3; }
+  #modal-readme h2 { font-size: 1.3rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 18px 0 10px; line-height: 1.3; }
+  #modal-readme h3 { font-size: 1.1rem; color: var(--text); margin: 15px 0 8px; }
+  #modal-readme h4 { font-size: 1rem; color: var(--text); margin: 12px 0 6px; }
+  #modal-readme p { margin-bottom: 10px; color: var(--text-secondary); }
+  #modal-readme ul, #modal-readme ol { margin: 8px 0 12px 22px; color: var(--text-secondary); }
+  #modal-readme li { margin-bottom: 4px; }
+  #modal-readme code { 
+    background: var(--card-bg); 
+    padding: 2px 7px; 
+    border-radius: 4px; 
+    font-family: 'Consolas', 'Fira Code', monospace; 
+    font-size: 0.88em; 
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  #modal-readme pre {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 0.83em;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+  }
+  #modal-readme pre code {
+    background: none;
+    padding: 0;
+    border: none;
+    color: #cdd6f4;
+  }
+  #modal-readme blockquote {
+    border-left: 4px solid var(--accent);
+    padding: 8px 18px;
+    margin: 12px 0;
+    background: rgba(108, 92, 231, 0.05);
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+  #modal-readme a { color: var(--accent); text-decoration: underline; }
+  #modal-readme img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+  #modal-readme table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.9em;
+  }
+  #modal-readme th, #modal-readme td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    color: var(--text-secondary);
+  }
+  #modal-readme th {
+    background: var(--badge-bg);
+    color: var(--text);
+    font-weight: 600;
+  }
+  #modal-readme hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 18px 0;
+  }
+  #modal-readme strong { color: var(--text); }
+  
+  /* Scrollbar estilizado para el README */
+  #modal-readme::-webkit-scrollbar {
+    width: 6px;
+  }
+  #modal-readme::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #modal-readme::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  #modal-readme::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+</style>
+
+<script>
+  // Configurar marked
+  if (typeof marked !== 'undefined') {
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      headerIds: false
+    });
+  }
+  
+  function openProjectModal(name, fullName, description, url, language, stars, forks, issues, license) {
+    const modal = document.getElementById('project-modal');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    document.getElementById('modal-title').textContent = name;
+    document.getElementById('modal-fullname').textContent = fullName;
+    document.getElementById('modal-description').textContent = description;
+    document.getElementById('modal-stars').textContent = stars;
+    document.getElementById('modal-forks').textContent = forks;
+    document.getElementById('modal-issues').textContent = issues;
+    document.getElementById('modal-license').textContent = license || 'N/A';
+    document.getElementById('modal-github-link').href = url;
+    
+    // Resetear README con loader
+    document.getElementById('modal-readme').innerHTML = `
+      <div style="text-align: center; padding: 20px;">
+        <p style="color: var(--text-secondary); margin-bottom: 12px;">Cargando README desde GitHub...</p>
+        <div style="width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+      </div>
+    `;
+    document.getElementById('modal-readme-badge').style.display = 'none';
+    
+    // Cargar README desde API
+    fetch(`/api/readme/${encodeURIComponent(name)}`)
+      .then(response => response.json())
+      .then(data => {
+        const readmeContainer = document.getElementById('modal-readme');
+        
+        if (data.success && data.readme) {
+          // Renderizar Markdown a HTML
+          const htmlContent = marked.parse(data.readme);
+          readmeContainer.innerHTML = htmlContent;
+          
+          // Mostrar badge de truncado
+          if (data.truncated) {
+            const badge = document.getElementById('modal-readme-badge');
+            badge.textContent = `40 de ${data.totalLines} líneas`;
+            badge.style.display = 'inline-block';
+          }
+        } else {
+          readmeContainer.innerHTML = `
+            <div style="text-align: center; padding: 30px;">
+              <p style="font-size: 2.5rem; margin-bottom: 10px;">📭</p>
+              <p style="color: var(--text-secondary);">Este proyecto no tiene README.md</p>
+            </div>
+          `;
+        }
+      })
+      .catch(error => {
+        document.getElementById('modal-readme').innerHTML = `
+          <div style="text-align: center; padding: 20px;">
+            <p style="color: #d63031;">Error al cargar el README.</p>
+          </div>
+        `;
+      });
+  }
+  
+  function closeModal() {
+    document.getElementById('project-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+  
+  // Cerrar con Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+  
+  // Cerrar haciendo clic fuera del modal
+  document.getElementById('project-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>

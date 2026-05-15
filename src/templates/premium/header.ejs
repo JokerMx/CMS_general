@@ -1,14 +1,23 @@
-<header style="background: var(--premium-header-bg); backdrop-filter: blur(20px); box-shadow: 0 4px 30px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;">
-  <div style="max-width: 1000px; margin: auto; display: flex; justify-content: space-between; align-items: center; padding: 18px 25px;">
-    <a href="/" style="font-size: 1.8rem; font-weight: bold; text-decoration: none; color: var(--premium-accent); text-shadow: 0 0 10px rgba(210,54,105,0.3);">
-      🔥 Premium
+<header style="background: var(--premium-card-bg); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 1000; border-bottom: 2px solid var(--premium-accent);">
+  <nav style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+    <a href="/" style="font-size: 1.8rem; font-weight: 800; text-decoration: none; color: var(--premium-accent); text-shadow: 0 0 20px rgba(210, 54, 105, 0.3);">
+      💎 DevCraft<span style="color: var(--premium-accent2);">Studio</span>
     </a>
-    <nav style="display: flex; gap: 25px; align-items: center;">
-      <a href="/" style="color: var(--premium-text); text-decoration:none; font-weight:600;">Inicio</a>
-      <a href="/?premium=0" style="color: var(--premium-text); text-decoration:none; font-weight:600;">Modo Normal</a>
-      <a href="?theme=dark" style="background:#1e1e1e; color:white; padding:8px 18px; border-radius:30px; text-decoration:none; font-size:0.9rem; transition: 0.2s;">
-        🌙 Oscuro
-      </a>
-    </nav>
-  </div>
+    
+    <ul style="display: flex; list-style: none; gap: 25px; align-items: center;">
+      <li><a href="/#hero" style="color: var(--premium-text); text-decoration: none; font-weight: 600;">Inicio</a></li>
+      <li><a href="/#services" style="color: var(--premium-text); text-decoration: none; font-weight: 600;">Servicios</a></li>
+      <li><a href="/#portfolio" style="color: var(--premium-text); text-decoration: none; font-weight: 600;">Proyectos</a></li>
+      <li><a href="/#tech-stack" style="color: var(--premium-text); text-decoration: none; font-weight: 600;">Tecnologías</a></li>
+      <li><a href="/#contact" style="color: var(--premium-text); text-decoration: none; font-weight: 600;">Contacto</a></li>
+      <li>
+        <a href="/toggle-theme?current=<%= theme %>" style="background: var(--premium-card-bg); padding: 8px 12px; border-radius: 50px; border: 2px solid var(--premium-accent); font-size: 1.2rem; text-decoration: none; display: inline-block; transition: transform 0.2s;"
+           onmouseover="this.style.transform='scale(1.1)'"
+           onmouseout="this.style.transform='scale(1)'"
+           title="Cambiar tema">
+          <%= theme === 'dark' ? '☀️' : '🌙' %>
+        </a>
+      </li>
+    </ul>
+  </nav>
 </header>

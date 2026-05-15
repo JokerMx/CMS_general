@@ -3,59 +3,169 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Desarrollo de Software Premium. Soluciones empresariales de alto nivel.">
   <title><%= title %> | Premium</title>
   <style>
     /* ========== VARIABLES PREMIUM (tema claro) ========== */
     .premium-layout {
       --premium-bg: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-      --premium-card-bg: rgba(255,255,255,0.25);
-      --premium-text: #2d2d2d;
+      --premium-bg2: #ffffff;
+      --premium-card-bg: rgba(255, 255, 255, 0.7);
+      --premium-card-border: rgba(255, 255, 255, 0.6);
+      --premium-text: #2d3436;
+      --premium-text-secondary: #555;
+      --premium-text-white: #ffffff;
       --premium-accent: #d23669;
-      --premium-header-bg: rgba(255,255,255,0.5);
+      --premium-accent2: #ff6b6b;
+      --premium-gradient: linear-gradient(135deg, #d23669, #ff6b6b);
+      --premium-shadow: 0 10px 40px rgba(210, 54, 105, 0.15);
+      --premium-hero-overlay: rgba(255, 255, 255, 0.3);
+      --premium-badge-bg: rgba(210, 54, 105, 0.1);
+      --premium-badge-text: #d23669;
     }
 
-    /* ========== MODO OSCURO ========== */
+    /* ========== MODO OSCURO PREMIUM ========== */
     .dark-theme .premium-layout {
-      --premium-bg: linear-gradient(135deg, #2c1a3b 0%, #1a0f2e 100%);
-      --premium-card-bg: rgba(30,30,30,0.6);
-      --premium-text: #e0d0f0;
+      --premium-bg: linear-gradient(135deg, #1a0a1e 0%, #0d0610 100%);
+      --premium-bg2: #1a0a1e;
+      --premium-card-bg: rgba(40, 20, 50, 0.85);
+      --premium-card-border: rgba(255, 107, 157, 0.3);
+      --premium-text: #f0e6f6;
+      --premium-text-secondary: #c0b0d0;
+      --premium-text-white: #ffffff;
       --premium-accent: #ff6b9d;
-      --premium-header-bg: rgba(20,20,30,0.7);
+      --premium-accent2: #ff8e53;
+      --premium-gradient: linear-gradient(135deg, #ff6b9d, #ff8e53);
+      --premium-shadow: 0 10px 40px rgba(255, 107, 157, 0.2);
+      --premium-hero-overlay: rgba(20, 5, 30, 0.5);
+      --premium-badge-bg: rgba(255, 107, 157, 0.2);
+      --premium-badge-text: #ff6b9d;
     }
 
     /* ========== ESTILOS BASE ========== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       margin: 0;
-      background: #222; /* fallback oscuro neutro, aunque no debería verse */
+      background: #222;
       transition: background 0.3s, color 0.3s;
     }
 
-    /* El contenedor principal maneja todo el diseño y el fondo */
     .premium-layout {
       background: var(--premium-bg);
       color: var(--premium-text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      backdrop-filter: blur(10px);
       transition: background 0.3s, color 0.3s;
     }
 
     main {
       flex: 1;
-      padding: 40px 20px;
-      max-width: 1000px;
-      margin: 0 auto;
-      width: 100%;
-      animation: slideUp 0.8s ease;
+    }
+
+    /* ========== ANIMACIONES ========== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(5deg); }
+    }
+
+    @keyframes goldGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+      50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); }
     }
 
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(40px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in { 
+      animation: fadeInUp 0.6s ease forwards; 
+      opacity: 0;
+    }
+    .fade-in-delay-1 { animation-delay: 0.1s; }
+    .fade-in-delay-2 { animation-delay: 0.2s; }
+    .fade-in-delay-3 { animation-delay: 0.3s; }
+    .fade-in-delay-4 { animation-delay: 0.4s; }
+    .fade-in-delay-5 { animation-delay: 0.5s; }
+
+    /* ========== ESTILOS DE TARJETAS ========== */
+    .premium-card {
+      background: var(--premium-card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 35px 30px;
+      box-shadow: var(--premium-shadow);
+      border: 1px solid var(--premium-card-border);
+      transition: all 0.4s ease;
+    }
+    .premium-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 50px var(--premium-accent-glow, rgba(255, 107, 157, 0.3));
+    }
+
+    /* ========== BOTONES ========== */
+    .premium-btn-primary {
+      background: var(--premium-gradient);
+      color: white;
+      padding: 15px 35px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-block;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .premium-btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(210, 54, 105, 0.4);
+    }
+
+    .premium-btn-outline {
+      border: 2px solid var(--premium-accent);
+      color: var(--premium-accent);
+      padding: 15px 35px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: transparent;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      display: inline-block;
+    }
+    .premium-btn-outline:hover {
+      transform: scale(1.05);
+      background: rgba(210, 54, 105, 0.1);
+    }
+
+    /* ========== BADGES ========== */
+    .premium-badge {
+      background: var(--premium-badge-bg);
+      color: var(--premium-badge-text);
+      padding: 5px 15px;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    /* ========== TÍTULOS CON GRADIENTE ========== */
+    .premium-gradient-text {
+      background: var(--premium-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
   </style>
 </head>
@@ -65,8 +175,8 @@
     <main>
       <%- body %>
     </main>
-    <footer style="background: var(--premium-header-bg); backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.6); padding: 20px; text-align: center; color: var(--premium-text); margin-top: auto;">
-      <p>✨ Experiencia Premium © 2026 – Hecho con dedicación</p>
+    <footer style="background: var(--premium-card-bg); backdrop-filter: blur(20px); padding: 30px; text-align: center; border-top: 1px solid var(--premium-card-border); color: var(--premium-text-secondary);">
+      <p>✨ <strong style="color: var(--premium-accent);">DevCraft Studio Premium</strong> — Excelencia en cada línea de código.</p>
     </footer>
   </div>
 </body>

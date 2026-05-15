@@ -1,13 +1,13 @@
 function resolveTemplateContext(req) {
-  const sets = ['default']; // siempre base
+  const sets = ['default'];
 
-  // Si solicita premium, lo ponemos al inicio (mayor prioridad)
-  if (req.query.premium === '1') {
+  // Premium desde cookie o query
+  if (req.cookies?.plan === 'premium' || req.query.premium === '1') {
     sets.unshift('premium');
   }
 
-  // El tema no es un conjunto, sino un dato adicional
-  const theme = req.query.theme === 'dark' ? 'dark' : 'light';
+  // Tema: primero query, luego cookie, luego default 'light'
+  const theme = req.query.theme || req.cookies?.theme || 'light';
 
   return { sets, theme };
 }

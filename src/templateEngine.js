@@ -9,17 +9,11 @@ class TemplateEngine {
     this.defaultSet = 'default';
   }
 
-  /**
-   * Resuelve la ruta de una plantilla.
-   * - templateRef: "conjunto:nombre.ejs" o "nombre.ejs"
-   * - contextSet: string o array de strings con los conjuntos activos (en orden de prioridad).
-   */
   resolveTemplate(templateRef, contextSet = null) {
     let [setName, templateName] = templateRef.includes(':')
       ? templateRef.split(':')
       : [null, templateRef];
 
-    // Si se especificó conjunto explícito (ej. emails:welcome), solo buscamos ahí (+ fallback default)
     if (setName) {
       const setsToTry = [setName];
       if (setName !== this.defaultSet) setsToTry.push(this.defaultSet);
@@ -30,9 +24,7 @@ class TemplateEngine {
       throw new Error(`Plantilla no encontrada: ${templateRef} (buscada en ${setsToTry.join(', ')})`);
     }
 
-    // Si no, usamos la lista de contextSet (array) o un solo conjunto
     const setsToTry = Array.isArray(contextSet) ? [...contextSet] : [contextSet || this.defaultSet];
-    // Aseguramos que siempre esté el default al final como último recurso
     if (!setsToTry.includes(this.defaultSet)) {
       setsToTry.push(this.defaultSet);
     }

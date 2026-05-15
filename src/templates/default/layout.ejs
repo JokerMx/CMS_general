@@ -3,55 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Desarrollo de Software Profesional. Apps web, móviles, cloud e IA.">
   <title><%= title %></title>
   <style>
-    /* ===== VARIABLES CSS (tema claro por defecto) ===== */
     :root {
-      --bg: #f0f2f5;
+      --bg: #f8f9fa;
+      --bg-secondary: #ffffff;
+      --text: #2d3436;
+      --text-secondary: #636e72;
+      --accent: #6c5ce7;
+      --accent2: #a29bfe;
+      --accent-glow: rgba(108, 92, 231, 0.3);
+      --gradient: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+      --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       --card-bg: #ffffff;
-      --text: #1a1a1a;
-      --text-secondary: #555;
-      --header-bg: white;
-      --footer-bg: white;
-      --shadow: rgba(0,0,0,0.08);
-      --accent: #667eea;
-      --accent2: #764ba2;
+      --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --border: #e0e0e0;
+      --nav-bg: rgba(255,255,255,0.9);
+      --footer-bg: #2d3436;
+      --footer-text: #dfe6e9;
+      --badge-bg: #f1f2f6;
+      --input-bg: #ffffff;
     }
-    /* ===== MODO OSCURO ===== */
+    
     .dark-theme {
-      --bg: #121212;
-      --card-bg: #1e1e1e;
+      --bg: #0f0f1a;
+      --bg-secondary: #1a1a2e;
       --text: #e0e0e0;
       --text-secondary: #aaa;
-      --header-bg: #1f1f1f;
-      --footer-bg: #1f1f1f;
-      --shadow: rgba(0,0,0,0.5);
       --accent: #bb86fc;
       --accent2: #03dac5;
+      --accent-glow: rgba(187, 134, 252, 0.3);
+      --gradient: linear-gradient(135deg, #bb86fc 0%, #03dac5 100%);
+      --gradient-hero: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      --card-bg: #1e1e32;
+      --card-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      --border: #333;
+      --nav-bg: rgba(15,15,26,0.9);
+      --footer-bg: #0a0a15;
+      --footer-text: #aaa;
+      --badge-bg: #2d2d44;
+      --input-bg: #2d2d44;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    html { scroll-behavior: smooth; }
+    
     body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      line-height: 1.6;
       transition: background 0.3s, color 0.3s;
+      overflow-x: hidden;
     }
-    main {
-      flex: 1;
-      padding: 30px 20px;
-      max-width: 1000px;
-      margin: 0 auto;
-      width: 100%;
-      animation: fadeIn 0.6s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+      50% { box-shadow: 0 0 40px var(--accent-glow), 0 0 60px var(--accent-glow); }
+    }
+    
+    .fade-in { animation: fadeInUp 0.6s ease forwards; opacity: 0; }
+    .fade-in-delay-1 { animation-delay: 0.1s; }
+    .fade-in-delay-2 { animation-delay: 0.2s; }
+    .fade-in-delay-3 { animation-delay: 0.3s; }
+    .fade-in-delay-4 { animation-delay: 0.4s; }
+    .fade-in-delay-5 { animation-delay: 0.5s; }
   </style>
 </head>
 <body class="<%= theme === 'dark' ? 'dark-theme' : '' %>">

@@ -1,0 +1,83 @@
+<section id="contact" style="padding: 80px 20px; background: var(--premium-bg);">
+  <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <span class="premium-badge" style="margin-bottom: 15px;">
+      CONTACTO VIP
+    </span>
+    <h2 style="font-size: 2.5rem; color: var(--premium-text); margin-bottom: 15px;">Hablemos de tu <span class="premium-gradient-text">proyecto</span></h2>
+    <p style="color: var(--premium-text-secondary); margin-bottom: 40px; line-height: 1.6;">Cuéntanos sobre tu idea y un ejecutivo premium te contactará en menos de 2 horas.</p>
+    
+    <form id="contact-form" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+      <div>
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--premium-text);">Nombre</label>
+        <input type="text" name="name" required 
+               style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--premium-card-border); background: var(--premium-card-bg); color: var(--premium-text); font-size: 1rem; transition: border-color 0.3s; outline: none;"
+               placeholder="Tu nombre completo"
+               onfocus="this.style.borderColor='var(--premium-accent)'"
+               onblur="this.style.borderColor='var(--premium-card-border)'">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--premium-text);">Email</label>
+        <input type="email" name="email" required 
+               style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--premium-card-border); background: var(--premium-card-bg); color: var(--premium-text); font-size: 1rem; transition: border-color 0.3s; outline: none;"
+               placeholder="tu@email.com"
+               onfocus="this.style.borderColor='var(--premium-accent)'"
+               onblur="this.style.borderColor='var(--premium-card-border)'">
+      </div>
+      <div>
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--premium-text);">Mensaje</label>
+        <textarea name="message" rows="5" required 
+                  style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid var(--premium-card-border); background: var(--premium-card-bg); color: var(--premium-text); font-size: 1rem; resize: vertical; transition: border-color 0.3s; outline: none;"
+                  placeholder="Cuéntanos sobre tu proyecto..."
+                  onfocus="this.style.borderColor='var(--premium-accent)'"
+                  onblur="this.style.borderColor='var(--premium-card-border)'"></textarea>
+      </div>
+      <button type="submit" class="premium-btn-primary" style="animation: goldGlow 2s infinite;">
+        Enviar Mensaje VIP 🚀
+      </button>
+    </form>
+    
+    <div id="form-message" style="margin-top: 20px; display: none;"></div>
+  </div>
+</section>
+
+<script>
+  document.getElementById('contact-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    
+    try {
+      const response = await fetch('/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      const messageEl = document.getElementById('form-message');
+      
+      if (result.success) {
+        messageEl.style.display = 'block';
+        messageEl.style.background = '#00b894';
+        messageEl.style.color = 'white';
+        messageEl.style.padding = '15px';
+        messageEl.style.borderRadius = '12px';
+        messageEl.style.fontWeight = '600';
+        messageEl.textContent = '✅ ¡Mensaje enviado! Un ejecutivo premium te contactará pronto.';
+        e.target.reset();
+      }
+    } catch (error) {
+      const messageEl = document.getElementById('form-message');
+      messageEl.style.display = 'block';
+      messageEl.style.background = '#d63031';
+      messageEl.style.color = 'white';
+      messageEl.style.padding = '15px';
+      messageEl.style.borderRadius = '12px';
+      messageEl.style.fontWeight = '600';
+      messageEl.textContent = '❌ Error al enviar. Intenta de nuevo.';
+    }
+    
+    // Scroll al mensaje
+    document.getElementById('form-message').scrollIntoView({ behavior: 'smooth' });
+  });
+</script>

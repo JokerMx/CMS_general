@@ -1,3 +1,34 @@
-<footer style="background: var(--footer-bg); border-top: 1px solid #e0e0e0; padding: 20px; text-align: center; color: var(--text-secondary); margin-top: auto;">
-  <p>© 2026 Mi Plataforma – Todos los derechos reservados.</p>
+<footer style="background: var(--footer-bg); color: var(--footer-text); padding: 60px 20px 30px; margin-top: 60px;">
+  <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px;">
+    <div>
+      <h3 style="font-size: 1.4rem; margin-bottom: 15px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">DevCraft Studio</h3>
+      <p style="color: var(--footer-text); opacity: 0.8;">Transformamos ideas en software de alto impacto.</p>
+      <div style="margin-top: 15px; display: flex; gap: 15px;">
+        <a href="https://github.com/<%= typeof profile !== 'undefined' && profile ? profile.username : '' %>" target="_blank" style="color: var(--footer-text); text-decoration: none; font-size: 1.3rem;">💻</a>
+        <a href="#" style="color: var(--footer-text); text-decoration: none; font-size: 1.3rem;">💼</a>
+        <a href="#" style="color: var(--footer-text); text-decoration: none; font-size: 1.3rem;">🐦</a>
+      </div>
+    </div>
+    
+    <div>
+      <h4 style="margin-bottom: 15px; color: white;">Servicios</h4>
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
+        <li><a href="/#services" style="color: var(--footer-text); text-decoration: none; opacity: 0.8;">Desarrollo Web</a></li>
+        <li><a href="/#services" style="color: var(--footer-text); text-decoration: none; opacity: 0.8;">Apps Móviles</a></li>
+        <li><a href="/#services" style="color: var(--footer-text); text-decoration: none; opacity: 0.8;">Cloud & DevOps</a></li>
+        <li><a href="/#services" style="color: var(--footer-text); text-decoration: none; opacity: 0.8;">IA & Automatización</a></li>
+      </ul>
+    </div>
+    
+    <div>
+      <h4 style="margin-bottom: 15px; color: white;">Contacto</h4>
+      <p style="opacity: 0.8;">📧 hello@devcraftstudio.dev</p>
+      <p style="opacity: 0.8;">📱 +1 (555) 123-4567</p>
+      <p style="opacity: 0.8;">📍 San Francisco, CA</p>
+    </div>
+  </div>
+  
+  <div style="max-width: 1200px; margin: 30px auto 0; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; opacity: 0.6; font-size: 0.9rem;">
+    <p>&copy; <%= currentYear %> DevCraft Studio. Todos los derechos reservados.</p>
+  </div>
 </footer>

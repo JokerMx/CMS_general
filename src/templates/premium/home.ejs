@@ -1,0 +1,76 @@
+<!-- HERO PREMIUM -->
+<section id="hero" style="background: var(--premium-bg); padding: 100px 20px; text-align: center; position: relative; overflow: hidden;">
+  <div style="position: absolute; top: 10%; right: 5%; width: 350px; height: 350px; background: rgba(210, 54, 105, 0.1); border-radius: 50%; filter: blur(60px); animation: float 8s ease-in-out infinite;"></div>
+  <div style="position: absolute; bottom: 10%; left: 5%; width: 250px; height: 250px; background: rgba(255, 215, 0, 0.08); border-radius: 50%; filter: blur(50px); animation: float 6s ease-in-out infinite; animation-delay: 3s;"></div>
+  
+  <div style="max-width: 800px; margin: 0 auto; position: relative; z-index: 1;">
+    <span class="fade-in fade-in-delay-1 premium-badge" style="margin-bottom: 20px; font-size: 0.95rem; padding: 10px 25px;">
+      🔥 Experiencia Premium
+    </span>
+    
+    <h1 class="fade-in fade-in-delay-2" style="font-size: 3.8rem; color: var(--premium-text); margin-bottom: 20px; line-height: 1.2; font-weight: 800;">
+      Software de <span class="premium-gradient-text">clase mundial</span>
+    </h1>
+    
+    <p class="fade-in fade-in-delay-3" style="font-size: 1.3rem; color: var(--premium-text-secondary); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+      Accede a nuestro equipo elite de desarrolladores con soporte prioritario 24/7 y garantía de satisfacción.
+    </p>
+    
+    <div class="fade-in fade-in-delay-4" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+      <a href="#contact" class="premium-btn-primary">Solicitar Consultoría VIP</a>
+      <a href="#portfolio" class="premium-btn-outline">Ver Proyectos</a>
+    </div>
+    
+    <!-- Stats -->
+    <div class="fade-in fade-in-delay-5" style="display: flex; gap: 30px; justify-content: center; margin-top: 60px; flex-wrap: wrap;">
+      <div class="premium-card" style="text-align: center; min-width: 150px; padding: 25px;">
+        <div style="font-size: 2.5rem; font-weight: 800; color: var(--premium-accent);">99.9%</div>
+        <div style="color: var(--premium-text-secondary); font-size: 0.9rem;">Uptime SLA</div>
+      </div>
+      <div class="premium-card" style="text-align: center; min-width: 150px; padding: 25px;">
+        <div style="font-size: 2.5rem; font-weight: 800; color: var(--premium-accent);">24/7</div>
+        <div style="color: var(--premium-text-secondary); font-size: 0.9rem;">Soporte VIP</div>
+      </div>
+      <div class="premium-card" style="text-align: center; min-width: 150px; padding: 25px;">
+        <div style="font-size: 2.5rem; font-weight: 800; color: var(--premium-accent);">&lt;1h</div>
+        <div style="color: var(--premium-text-secondary); font-size: 0.9rem;">Respuesta</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS PREMIUM -->
+<section id="services" style="padding: 80px 20px; max-width: 1200px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 60px;">
+    <span class="premium-badge" style="margin-bottom: 15px;">SERVICIOS PREMIUM</span>
+    <h2 style="font-size: 2.5rem; color: var(--premium-text); margin-bottom: 15px;">Soluciones <span class="premium-gradient-text">exclusivas</span></h2>
+    <p style="color: var(--premium-text-secondary); max-width: 600px; margin: 0 auto;">Servicios diseñados para empresas que exigen lo mejor en tecnología y atención personalizada.</p>
+  </div>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+    <div class="premium-card fade-in fade-in-delay-1">
+      <div style="font-size: 3rem; margin-bottom: 20px;">💎</div>
+      <h3 style="font-size: 1.4rem; color: var(--premium-accent); margin-bottom: 12px;">Desarrollo VIP</h3>
+      <p style="color: var(--premium-text-secondary); margin-bottom: 20px;">Equipo dedicado exclusivamente a tu proyecto con comunicación directa y sprints semanales.</p>
+      <span class="premium-badge">Exclusivo</span>
+    </div>
+    
+    <div class="premium-card fade-in fade-in-delay-2">
+      <div style="font-size: 3rem; margin-bottom: 20px;">🎁</div>
+      <h3 style="font-size: 1.4rem; color: var(--premium-accent); margin-bottom: 12px;">Beneficios Elite</h3>
+      <p style="color: var(--premium-text-secondary); margin-bottom: 20px;">Descuentos permanentes, acceso anticipado a features y revisiones de código ilimitadas.</p>
+      <span class="premium-badge">Premium</span>
+    </div>
+    
+    <div class="premium-card fade-in fade-in-delay-3">
+      <div style="font-size: 3rem; margin-bottom: 20px;">⚙️</div>
+      <h3 style="font-size: 1.4rem; color: var(--premium-accent); margin-bottom: 12px;">Infraestructura</h3>
+      <p style="color: var(--premium-text-secondary); margin-bottom: 20px;">Servidores dedicados, monitoreo 24/7 y escalado automático según demanda.</p>
+      <span class="premium-badge">Garantizado</span>
+    </div>
+  </div>
+</section>
+
+<!-- PORTAFOLIO Y CONTACTO PREMIUM -->
+<%- await include('partials/portfolio.ejs') %>
+<%- await include('partials/contact.ejs') %>

@@ -1,0 +1,88 @@
+<section style="padding: 80px 20px; max-width: 1200px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 60px;">
+    <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
+      PLANES
+    </span>
+    <h1 style="font-size: 2.8rem; margin-bottom: 15px;">Elige tu <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">plan</span></h1>
+    <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">Selecciona el plan que mejor se adapte a tus necesidades. Puedes cambiarlo en cualquier momento.</p>
+  </div>
+  
+  <!-- Grid de planes -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; margin-bottom: 60px;">
+    <% if (typeof plans !== 'undefined' && plans.length > 0) { %>
+      <% plans.forEach((plan, index) => { %>
+        <div class="fade-in" style="animation-delay: <%= index * 0.1 %>s; background: var(--card-bg); border-radius: 20px; padding: 35px 30px; box-shadow: var(--card-shadow); border: 2px solid <%= userPlan && userPlan.id === plan.id ? plan.color : 'var(--border)' %>; transition: all 0.3s; position: relative; overflow: hidden; <% if (userPlan && userPlan.id === plan.id) { %>box-shadow: 0 0 30px <%= plan.color %>30;<% } %>"
+             onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 20px 50px rgba(0,0,0,0.15)'"
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--card-shadow)'">
+          
+          <!-- Badge "Actual" -->
+          <% if (userPlan && userPlan.id === plan.id) { %>
+            <div style="position: absolute; top: 15px; right: 15px; background: <%= plan.color %>; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;">
+              ACTUAL
+            </div>
+          <% } %>
+          
+          <!-- Icono y nombre -->
+          <div style="text-align: center; margin-bottom: 25px;">
+            <span style="font-size: 3rem;"><%= plan.icon %></span>
+            <h3 style="font-size: 1.5rem; color: var(--text); margin-top: 10px;"><%= plan.name %></h3>
+          </div>
+          
+          <!-- Precio -->
+          <div style="text-align: center; margin-bottom: 25px;">
+            <span style="font-size: 2.5rem; font-weight: 800; color: <%= plan.color %>;">
+              <% if (plan.price === 0) { %>
+                Gratis
+              <% } else { %>
+                $<%= plan.price %>
+              <% } %>
+            </span>
+            <% if (plan.price > 0) { %>
+              <span style="color: var(--text-secondary);">/mes</span>
+            <% } %>
+          </div>
+          
+          <!-- Características -->
+          <ul style="list-style: none; margin-bottom: 30px; flex-grow: 1;">
+            <% if (plan.features) { %>
+              <% plan.features.forEach(feature => { %>
+                <li style="padding: 10px 0; color: var(--text-secondary); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;">
+                  <span style="color: <%= plan.color %>;">✓</span> <%= feature %>
+                </li>
+              <% }); %>
+            <% } %>
+            <li style="padding: 10px 0; color: var(--text-secondary); display: flex; align-items: center; gap: 10px;">
+              <span style="color: <%= plan.color %>;">📦</span> 
+              <% if (plan.maxProjects === Infinity) { %>
+                Proyectos ilimitados
+              <% } else { %>
+                Hasta <%= plan.maxProjects %> proyectos
+              <% } %>
+            </li>
+          </ul>
+          
+          <!-- Botón -->
+          <% if (userPlan && userPlan.id === plan.id) { %>
+            <button disabled style="width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; font-size: 1rem; background: var(--badge-bg); color: var(--text-secondary); cursor: not-allowed;">
+              Plan actual
+            </button>
+          <% } else { %>
+            <a href="/set-plan/<%= plan.id %>" style="display: block; text-align: center; background: <%= plan.gradient %>; color: white; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 1rem; transition: transform 0.2s, box-shadow 0.2s;"
+               onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 10px 30px <%= plan.color %>40'"
+               onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+              Elegir <%= plan.name %>
+            </a>
+          <% } %>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+  
+  <!-- Info adicional -->
+  <div style="text-align: center; padding: 30px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
+    <p style="color: var(--text-secondary);">
+      💡 <strong style="color: var(--text);">¿Necesitas un plan personalizado?</strong> 
+      <a href="#contact" style="color: var(--accent);">Contáctanos</a> y creamos un plan a tu medida.
+    </p>
+  </div>
+</section>
