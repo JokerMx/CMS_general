@@ -3,90 +3,168 @@
     <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
       TECNOLOGÍAS
     </span>
-    <h2 style="font-size: 2.5rem; margin-bottom: 15px;">Nuestro <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Stack</span></h2>
-    <p style="color: var(--text-secondary); max-width: 700px; margin: 0 auto;">
-      Tecnologías detectadas automáticamente desde nuestros repositorios de GitHub. 
-      Datos reales basados en frecuencia de uso, estrellas y proyectos.
+    <h2 style="font-size: 2.5rem; margin-bottom: 15px;">
+      Nuestro <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Stack</span>
+    </h2>
+    <p style="color: var(--text-secondary); max-width: 700px; margin: 0 auto 8px auto;">
+      Tecnologías detectadas de 
+      <strong style="color: var(--accent);">
+        <%= typeof projects !== 'undefined' ? projects.length : 0 %> proyectos visibles
+      </strong>
+      en tu portafolio.
     </p>
+    <% if (typeof userPlan !== 'undefined' && userPlan) { %>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 5px;">
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: <%= userPlan.color %>15; color: <%= userPlan.color %>; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; border: 1px solid <%= userPlan.color %>30;">
+          <%= userPlan.icon %> Plan <%= userPlan.name %> · 
+          <% if (userPlan.maxProjects === Infinity) { %>
+            Proyectos ilimitados
+          <% } else { %>
+            <%= typeof projects !== 'undefined' ? projects.length : 0 %> / <%= userPlan.maxProjects %> proyectos
+          <% } %>
+        </span>
+      </p>
+    <% } %>
   </div>
   
   <!-- Grid de tecnologías -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-    <% if (typeof techStack !== 'undefined' && techStack.length > 0) { %>
+  <% if (typeof techStack !== 'undefined' && techStack.length > 0) { %>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
       <% techStack.forEach((tech, index) => { %>
-        <div class="fade-in" style="animation-delay: <%= (index * 0.08) %>s; background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--card-shadow); border: 1px solid var(--border); transition: transform 0.3s, box-shadow 0.3s;"
+        <div class="fade-in" 
+             style="animation-delay: <%= (index * 0.08) %>s; background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--card-shadow); border: 1px solid var(--border); transition: transform 0.3s, box-shadow 0.3s; position: relative; overflow: hidden;"
              onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.12)'"
              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--card-shadow)'">
           
+          <!-- Línea decorativa superior -->
+          <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: <%= tech.color %>; border-radius: 16px 16px 0 0;"></div>
+          
           <!-- Cabecera: icono + nombre + nivel -->
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-            <span style="font-size: 1.8rem;"><%= tech.icon || '💻' %></span>
-            <div style="flex: 1;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px; margin-top: 5px;">
+            <span style="font-size: 2rem; flex-shrink: 0;"><%= tech.icon || '💻' %></span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                 <span style="font-weight: 700; color: var(--text); font-size: 1.1rem;"><%= tech.name %></span>
-                <!-- Nivel con fondo del color de la tecnología -->
-                <span style="background: <%= tech.color %>; color: #fff; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+                <!-- Badge de nivel -->
+                <span style="background: <%= tech.color %>; color: #ffffff; padding: 5px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; text-shadow: 0 1px 2px rgba(0,0,0,0.2); white-space: nowrap; box-shadow: 0 3px 10px <%= tech.color %>40;">
                   <%= tech.level %>%
                 </span>
               </div>
             </div>
           </div>
           
-          <!-- Barra de progreso con fondo oscuro para contraste -->
-          <div style="background: var(--badge-bg); border-radius: 10px; height: 12px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--border);">
-            <div style="background: <%= tech.color %>; height: 100%; width: <%= tech.level %>%; border-radius: 10px; transition: width 1.5s ease; min-width: 2px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 8px <%= tech.color %>60;"></div>
+          <!-- Barra de progreso -->
+          <div style="background: var(--badge-bg); border-radius: 10px; height: 12px; overflow: hidden; margin-bottom: 18px; border: 1px solid var(--border);">
+            <div style="background: linear-gradient(90deg, <%= tech.color %>, <%= tech.color %>cc); height: 100%; width: <%= tech.level %>%; border-radius: 10px; transition: width 1.5s ease; min-width: 2px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 0 12px <%= tech.color %>50;"></div>
           </div>
           
-          <!-- Estadísticas con colores oscuros para legibilidad -->
-          <div style="display: flex; gap: 15px; font-size: 0.85rem; flex-wrap: wrap;">
-            <% if (tech.count) { %>
-              <span style="background: var(--badge-bg); color: var(--text); padding: 4px 10px; border-radius: 20px; font-weight: 500;" title="Repositorios que usan esta tecnología">
-                📦 <%= tech.count %> repos
+          <!-- Estadísticas -->
+          <div style="display: flex; gap: 10px; font-size: 0.82rem; flex-wrap: wrap; margin-bottom: 12px;">
+            <% if (tech.count && tech.count > 0) { %>
+              <span style="background: var(--badge-bg); color: var(--text); padding: 5px 12px; border-radius: 20px; font-weight: 500; display: flex; align-items: center; gap: 5px;" 
+                    title="Proyectos que usan esta tecnología">
+                📦 <strong><%= tech.count %></strong> de <%= typeof projects !== 'undefined' ? projects.length : 0 %> proyectos
               </span>
             <% } %>
-            <% if (tech.stars) { %>
-              <span style="background: var(--badge-bg); color: var(--text); padding: 4px 10px; border-radius: 20px; font-weight: 500;" title="Estrellas totales">
-                ⭐ <%= tech.stars %>
+            <% if (tech.percentage && tech.percentage > 0) { %>
+              <span style="background: var(--badge-bg); color: var(--text); padding: 5px 12px; border-radius: 20px; font-weight: 500; display: flex; align-items: center; gap: 5px;"
+                    title="Porcentaje del portafolio que usa esta tecnología">
+                📊 <strong><%= tech.percentage %>%</strong> del portafolio
+              </span>
+            <% } %>
+          </div>
+          
+          <!-- Segunda línea de estadísticas -->
+          <div style="display: flex; gap: 10px; font-size: 0.82rem; flex-wrap: wrap;">
+            <% if (tech.stars && tech.stars > 0) { %>
+              <span style="background: var(--badge-bg); color: var(--text); padding: 5px 12px; border-radius: 20px; font-weight: 500; display: flex; align-items: center; gap: 5px;"
+                    title="Estrellas totales en proyectos que usan esta tecnología">
+                ⭐ <strong><%= tech.stars %></strong> estrellas
+              </span>
+            <% } %>
+            <% if (tech.reposCount && tech.reposCount > 0) { %>
+              <span style="background: var(--badge-bg); color: var(--text); padding: 5px 12px; border-radius: 20px; font-weight: 500; display: flex; align-items: center; gap: 5px;"
+                    title="Cantidad de repositorios">
+                🗂️ <strong><%= tech.reposCount %></strong> repositorios
               </span>
             <% } %>
           </div>
           
           <!-- Repositorios relacionados -->
           <% if (tech.repos && tech.repos.length > 0) { %>
-            <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 5px;">
-              <% tech.repos.slice(0, 3).forEach(repo => { %>
-                <span style="background: <%= tech.color %>25; color: var(--text); padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 500; border: 1px solid <%= tech.color %>40;">
-                  <%= repo %>
-                </span>
-              <% }); %>
-              <% if (tech.repos.length > 3) { %>
-                <span style="background: var(--badge-bg); color: var(--text-secondary); padding: 3px 8px; border-radius: 20px; font-size: 0.7rem;">
-                  +<%= tech.repos.length - 3 %>
-                </span>
-              <% } %>
+            <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--border);">
+              <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 8px;">
+                📁 Proyectos que usan <%= tech.name %>:
+              </span>
+              <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                <% tech.repos.slice(0, 4).forEach(repo => { %>
+                  <span style="background: <%= tech.color %>18; color: var(--text); padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; border: 1px solid <%= tech.color %>30;">
+                    <%= repo %>
+                  </span>
+                <% }); %>
+                <% if (tech.repos.length > 4) { %>
+                  <span style="background: var(--badge-bg); color: var(--text-secondary); padding: 4px 10px; border-radius: 20px; font-size: 0.72rem;">
+                    +<%= tech.repos.length - 4 %> más
+                  </span>
+                <% } %>
+              </div>
             </div>
           <% } %>
         </div>
       <% }); %>
-    <% } else { %>
-      <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">
-        <p>📊 Conecta tu cuenta de GitHub para ver estadísticas reales de tu stack tecnológico.</p>
-      </div>
-    <% } %>
-  </div>
-  
-  <!-- Leyenda -->
-  <div style="text-align: center; margin-top: 40px; padding: 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 10px;">
-      📊 <strong style="color: var(--text);">¿Cómo se calcula el nivel?</strong>
-    </p>
-    <p style="color: var(--text-secondary); font-size: 0.85rem;">
-      40% frecuencia de uso + 40% estrellas obtenidas + 20% cantidad de proyectos
-    </p>
-    <% if (typeof profile !== 'undefined' && profile && profile.totalRepos > 0) { %>
-      <p style="color: var(--accent); font-size: 0.85rem; margin-top: 8px; font-weight: 500;">
-        Basado en <%= profile.totalRepos %> repositorios analizados
+    </div>
+    
+    <!-- Leyenda explicativa -->
+    <div style="text-align: center; margin-top: 40px; padding: 25px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--card-shadow);">
+      <p style="color: var(--text); font-weight: 700; margin-bottom: 12px; font-size: 1rem;">
+        📊 ¿Cómo se calcula el nivel de cada tecnología?
       </p>
-    <% } %>
-  </div>
+      <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; color: var(--text-secondary); font-size: 0.88rem;">
+        <span style="display: flex; align-items: center; gap: 6px;">
+          <span style="color: var(--accent); font-weight: 700;">50%</span> Frecuencia en proyectos
+        </span>
+        <span style="display: flex; align-items: center; gap: 6px;">
+          <span style="color: var(--accent); font-weight: 700;">30%</span> Estrellas obtenidas
+        </span>
+        <span style="display: flex; align-items: center; gap: 6px;">
+          <span style="color: var(--accent); font-weight: 700;">20%</span> Cantidad de repositorios
+        </span>
+      </div>
+      <% if (typeof profile !== 'undefined' && profile && profile.totalRepos > 0) { %>
+        <p style="color: var(--accent); font-size: 0.85rem; margin-top: 10px; font-weight: 500;">
+          📦 Stack generado a partir de <strong><%= typeof projects !== 'undefined' ? projects.length : 0 %></strong> proyectos visibles 
+          de <strong><%= profile.totalRepos %></strong> repositorios totales en GitHub
+        </p>
+      <% } %>
+      <% if (typeof userPlan !== 'undefined' && userPlan && userPlan.id !== 'platinum') { %>
+        <a href="/plans" style="display: inline-block; margin-top: 12px; color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;"
+           onmouseover="this.style.transform='scale(1.03)'"
+           onmouseout="this.style.transform='scale(1)'">
+          ⬆️ Mejora tu plan para mostrar más tecnologías →
+        </a>
+      <% } %>
+    </div>
+    
+  <% } else { %>
+    <!-- Estado vacío -->
+    <div style="text-align: center; padding: 60px 20px;">
+      <div style="font-size: 4rem; margin-bottom: 20px;">📊</div>
+      <h3 style="color: var(--text); margin-bottom: 12px; font-size: 1.3rem;">No hay tecnologías para mostrar</h3>
+      <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto 25px auto;">
+        <% if (typeof projects !== 'undefined' && projects.length === 0) { %>
+          No hay proyectos visibles en tu portafolio. 
+          <% if (typeof userPlan !== 'undefined' && userPlan) { %>
+            <a href="/admin" style="color: var(--accent); font-weight: 600;">Selecciona proyectos</a> para generar el stack tecnológico.
+          <% } %>
+        <% } else { %>
+          Conecta tu cuenta de GitHub para ver estadísticas reales de tu stack tecnológico.
+        <% } %>
+      </p>
+      <a href="/admin" style="display: inline-block; background: var(--gradient); color: white; padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: transform 0.2s;"
+         onmouseover="this.style.transform='scale(1.05)'"
+         onmouseout="this.style.transform='scale(1)'">
+        ⚙️ Ir al Panel de Administración
+      </a>
+    </div>
+  <% } %>
 </section>
