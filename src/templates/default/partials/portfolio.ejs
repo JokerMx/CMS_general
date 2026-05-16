@@ -1,5 +1,10 @@
-<section id="portfolio" style="padding: 80px 20px; background: var(--bg-secondary);">
-  <div style="max-width: 1200px; margin: 0 auto;">
+<section id="portfolio" style="padding: 80px 20px; background: transparent; position: relative; z-index: 1;">
+  
+  <!-- Overlay sutil para legibilidad sin tapar partículas -->
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-secondary); opacity: 0.65; z-index: -1;"></div>
+  
+  <div style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+    
     <!-- Cabecera de la sección -->
     <div style="text-align: center; margin-bottom: 60px;">
       <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
@@ -29,7 +34,7 @@
             <% if (userPlan.maxProjects === Infinity) { %>
               Proyectos ilimitados
             <% } else { %>
-              <%= (typeof projects !== 'undefined' ? projects.length : 0) %> / <%= userPlan.maxProjects %> proyectos
+              <%= typeof projects !== 'undefined' ? projects.length : 0 %> / <%= userPlan.maxProjects %> proyectos
             <% } %>
           </span>
         </div>
@@ -57,13 +62,12 @@
                )">
             
             <!-- Indicador de clic -->
-            <div style="position: absolute; top: 12px; right: 12px; background: var(--badge-bg); color: var(--text-secondary); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.3s;"
-                 onmouseover="this.closest('.project-card').querySelector('.click-hint').style.opacity='1'">
+            <div style="position: absolute; top: 12px; right: 12px; background: var(--badge-bg); color: var(--text-secondary); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.3s; z-index: 2;">
               🔍
             </div>
             
             <!-- Cabecera del proyecto -->
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; padding-right: 35px;">
               <span style="font-size: 1.5rem; flex-shrink: 0;">
                 <%= project.isPrivate ? '🔒' : '📁' %>
               </span>
@@ -76,7 +80,7 @@
                      onclick="event.stopPropagation()"
                      style="font-size: 0.75rem; color: var(--accent); text-decoration: none; display: inline-block; margin-top: 2px;"
                      title="Demo en vivo">
-                    🔗 <%= project.homepage.replace(/https?:\/\//, '').substring(0, 30) %>
+                    🔗 Demo
                   </a>
                 <% } %>
               </div>
@@ -128,7 +132,7 @@
               <% } %>
             </div>
             
-            <!-- Botón de acción -->
+            <!-- Botones de acción -->
             <div style="display: flex; gap: 10px;">
               <span style="flex: 1; text-align: center; background: var(--gradient); color: white; padding: 10px 16px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-block;"
                  onmouseover="this.style.transform='scale(1.03)'; this.style.opacity='0.9'"
@@ -145,9 +149,9 @@
               </a>
             </div>
             
-            <!-- Etiqueta de visibilidad -->
+            <!-- Etiqueta de privacidad -->
             <% if (project.isPrivate) { %>
-              <div style="position: absolute; top: 12px; left: 12px; background: rgba(255,193,7,0.15); color: #ffc107; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              <div style="position: absolute; top: 12px; left: 12px; background: rgba(255,193,7,0.12); color: #ffc107; padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255,193,7,0.25);">
                 Privado
               </div>
             <% } %>
@@ -234,7 +238,7 @@
         </div>
       </div>
       
-      <!-- README - Scroll interno -->
+      <!-- README - Único contenedor con scroll -->
       <div style="padding: 0 30px; flex: 1; min-height: 0; display: flex; flex-direction: column;">
         <h3 style="color: var(--text); margin-bottom: 10px; font-size: 1.1rem; flex-shrink: 0; display: flex; align-items: center; gap: 10px;">
           📄 README.md 
@@ -267,7 +271,7 @@
   </div>
 </div>
 
-<!-- Librería Marked para renderizar Markdown -->
+<!-- Librería Marked -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <style>
@@ -280,44 +284,14 @@
     to { transform: rotate(360deg); }
   }
   
-  /* ===== Estilos del README renderizado ===== */
-  #modal-readme h1 { 
-    font-size: 1.6rem; 
-    color: var(--text); 
-    border-bottom: 2px solid var(--border); 
-    padding-bottom: 10px; 
-    margin: 20px 0 12px; 
-    line-height: 1.3; 
-  }
-  #modal-readme h2 { 
-    font-size: 1.3rem; 
-    color: var(--text); 
-    border-bottom: 1px solid var(--border); 
-    padding-bottom: 8px; 
-    margin: 18px 0 10px; 
-    line-height: 1.3; 
-  }
-  #modal-readme h3 { 
-    font-size: 1.1rem; 
-    color: var(--text); 
-    margin: 15px 0 8px; 
-  }
-  #modal-readme h4 { 
-    font-size: 1rem; 
-    color: var(--text); 
-    margin: 12px 0 6px; 
-  }
-  #modal-readme p { 
-    margin-bottom: 10px; 
-    color: var(--text-secondary); 
-  }
-  #modal-readme ul, #modal-readme ol { 
-    margin: 8px 0 12px 22px; 
-    color: var(--text-secondary); 
-  }
-  #modal-readme li { 
-    margin-bottom: 4px; 
-  }
+  /* Estilos del README renderizado */
+  #modal-readme h1 { font-size: 1.6rem; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin: 20px 0 12px; line-height: 1.3; }
+  #modal-readme h2 { font-size: 1.3rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 18px 0 10px; line-height: 1.3; }
+  #modal-readme h3 { font-size: 1.1rem; color: var(--text); margin: 15px 0 8px; }
+  #modal-readme h4 { font-size: 1rem; color: var(--text); margin: 12px 0 6px; }
+  #modal-readme p { margin-bottom: 10px; color: var(--text-secondary); }
+  #modal-readme ul, #modal-readme ol { margin: 8px 0 12px 22px; color: var(--text-secondary); }
+  #modal-readme li { margin-bottom: 4px; }
   #modal-readme code { 
     background: var(--card-bg); 
     padding: 2px 7px; 
@@ -339,12 +313,7 @@
     line-height: 1.5;
     border: 1px solid var(--border);
   }
-  #modal-readme pre code {
-    background: none;
-    padding: 0;
-    border: none;
-    color: #cdd6f4;
-  }
+  #modal-readme pre code { background: none; padding: 0; border: none; color: #cdd6f4; }
   #modal-readme blockquote {
     border-left: 4px solid var(--accent);
     padding: 8px 18px;
@@ -354,66 +323,23 @@
     color: var(--text-secondary);
     font-style: italic;
   }
-  #modal-readme a { 
-    color: var(--accent); 
-    text-decoration: underline; 
-  }
-  #modal-readme img { 
-    max-width: 100%; 
-    border-radius: 8px; 
-    margin: 8px 0; 
-  }
-  #modal-readme table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 12px 0;
-    font-size: 0.9em;
-  }
-  #modal-readme th, #modal-readme td {
-    border: 1px solid var(--border);
-    padding: 8px 12px;
-    text-align: left;
-    color: var(--text-secondary);
-  }
-  #modal-readme th {
-    background: var(--badge-bg);
-    color: var(--text);
-    font-weight: 600;
-  }
-  #modal-readme hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 18px 0;
-  }
-  #modal-readme strong { 
-    color: var(--text); 
-  }
+  #modal-readme a { color: var(--accent); text-decoration: underline; }
+  #modal-readme img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+  #modal-readme table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9em; }
+  #modal-readme th, #modal-readme td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; color: var(--text-secondary); }
+  #modal-readme th { background: var(--badge-bg); color: var(--text); font-weight: 600; }
+  #modal-readme hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+  #modal-readme strong { color: var(--text); }
   
-  /* Scrollbar estilizado */
-  #modal-readme::-webkit-scrollbar {
-    width: 6px;
-  }
-  #modal-readme::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 3px;
-  }
-  #modal-readme::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 3px;
-  }
-  #modal-readme::-webkit-scrollbar-thumb:hover {
-    background: var(--accent);
-  }
+  #modal-readme::-webkit-scrollbar { width: 6px; }
+  #modal-readme::-webkit-scrollbar-track { background: transparent; border-radius: 3px; }
+  #modal-readme::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #modal-readme::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 </style>
 
 <script>
-  // Configurar marked
   if (typeof marked !== 'undefined') {
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-      headerIds: false
-    });
+    marked.setOptions({ breaks: true, gfm: true, headerIds: false });
   }
   
   function openProjectModal(name, fullName, description, url, language, stars, forks, issues, license) {
@@ -430,7 +356,6 @@
     document.getElementById('modal-license').textContent = license || 'N/A';
     document.getElementById('modal-github-link').href = url;
     
-    // Resetear README con loader
     document.getElementById('modal-readme').innerHTML = `
       <div style="text-align: center; padding: 20px;">
         <p style="color: var(--text-secondary); margin-bottom: 12px;">Cargando README desde GitHub...</p>
@@ -438,23 +363,18 @@
       </div>
     `;
     document.getElementById('modal-readme-badge').style.display = 'none';
-    
-    // Scroll al inicio del README
     document.getElementById('modal-readme').scrollTop = 0;
     
-    // Cargar README desde API
     fetch(`/api/readme/${encodeURIComponent(name)}`)
       .then(response => response.json())
       .then(data => {
         const readmeContainer = document.getElementById('modal-readme');
         
         if (data.success && data.readme) {
-          // Renderizar Markdown a HTML
           const htmlContent = marked.parse(data.readme);
           readmeContainer.innerHTML = htmlContent;
           readmeContainer.scrollTop = 0;
           
-          // Mostrar badge de truncado
           if (data.truncated) {
             const badge = document.getElementById('modal-readme-badge');
             badge.textContent = `40 de ${data.totalLines} líneas`;
@@ -483,12 +403,10 @@
     document.body.style.overflow = 'auto';
   }
   
-  // Cerrar con Escape
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeModal();
   });
   
-  // Cerrar haciendo clic fuera del modal
   document.getElementById('project-modal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });

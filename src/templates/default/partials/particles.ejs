@@ -1,0 +1,156 @@
+<!-- Canvas de partículas -->
+<canvas id="particleCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></canvas>
+
+<script>
+(function() {
+  const canvas = document.getElementById('particleCanvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+  
+  let particles = [];
+  const PARTICLE_COUNT = 90;
+  let hue = 250;
+  
+  const isDark = document.body.classList.contains('dark-theme');
+  
+  class Particle {
+    constructor() {
+      this.x = Math.random() * width;
+      this.y = Math.random() * height;
+      this.vx = (Math.random() - 0.5) * 0.8;
+      this.vy = (Math.random() - 0.5) * 0.8;
+      this.size = Math.random() * 3 + 1.5;
+      // Brillo aleatorio
+      this.brightness = Math.random() * 0.4 + 0.6;
+    }
+    
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      
+      if (this.x < 0) this.x = width;
+      if (this.x > width) this.x = 0;
+      if (this.y < 0) this.y = height;
+      if (this.y > height) this.y = 0;
+      
+      // Variar brillo suavemente
+      this.brightness += (Math.random() - 0.5) * 0.02;
+      this.brightness = Math.max(0.4, Math.min(1, this.brightness));
+    }
+    
+    draw() {
+      if (!ctx) return;
+      
+      // Brillo exterior (glow)
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+      
+      if (isDark) {
+        ctx.fillStyle = `hsla(${hue}, 80%, 65%, ${this.brightness * 0.15})`;
+      } else {
+        ctx.fillStyle = `hsla(${hue}, 70%, 55%, ${this.brightness * 0.2})`;
+      }
+      ctx.fill();
+      
+      // Partícula central
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      
+      if (isDark) {
+        ctx.fillStyle = `hsla(${hue}, 90%, 70%, ${this.brightness * 0.9})`;
+      } else {
+        ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${this.brightness * 0.7})`;
+      }
+      ctx.fill();
+      
+      // Núcleo brillante
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+      
+      if (isDark) {
+        ctx.fillStyle = `hsla(${hue}, 100%, 85%, ${this.brightness})`;
+      } else {
+        ctx.fillStyle = `hsla(${hue}, 90%, 70%, ${this.brightness * 0.8})`;
+      }
+      ctx.fill();
+    }
+  }
+  
+  function initParticles() {
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Particle());
+    }
+  }
+  
+  function drawLines() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.hypot(dx, dy);
+        
+        if (dist < 140) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          
+          const alpha = (1 - dist / 140);
+          if (isDark) {
+            ctx.strokeStyle = `hsla(${hue}, 80%, 65%, ${alpha * 0.6})`;
+          } else {
+            ctx.strokeStyle = `hsla(${hue}, 70%, 55%, ${alpha * 0.4})`;
+          }
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  
+  function animate() {
+    if (!ctx) return;
+    
+    // Efecto estela
+    if (isDark) {
+      ctx.fillStyle = 'rgba(15, 15, 26, 0.1)';
+    } else {
+      ctx.fillStyle = 'rgba(248, 249, 250, 0.15)';
+    }
+    ctx.fillRect(0, 0, width, height);
+    
+    for (let p of particles) {
+      p.update();
+      p.draw();
+    }
+    drawLines();
+    requestAnimationFrame(animate);
+  }
+  
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    initParticles();
+  }
+  
+  // Cambiar color de partículas al cambiar tema
+  function updateTheme() {
+    const nowDark = document.body.classList.contains('dark-theme');
+    if (nowDark !== isDark) {
+      location.reload();
+    }
+  }
+  
+  const observer = new MutationObserver(updateTheme);
+  observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  animate();
+})();
+</script>
