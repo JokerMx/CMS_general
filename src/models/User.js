@@ -28,12 +28,22 @@ class User {
   }
 
   static async findByEmail(email) {
-    const p = getPool();
-    const [rows] = await p.query(
-      'SELECT * FROM users WHERE email = ? AND is_active = TRUE',
-      [email]
-    );
-    return rows[0] || null;
+    // ✅ Validación para evitar error
+    if (!email || typeof email !== 'string') {
+      console.error('❌ findByEmail: email inválido o vacío:', email);
+      return null;
+    }
+
+    try {
+      const result = await db.query(
+        'SELECT * FROM users WHERE email = $1',
+        [email.toLowerCase().trim()]
+      );
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('❌ Error en findByEmail:', error.message);
+      return null;
+    }
   }
 
   static async findByUsername(username) {

@@ -36,7 +36,7 @@ app.use('/static', express.static(path.join(__dirname, 'public')));
 // Middleware de usuario (carga datos del usuario autenticado)
 app.use(loadUser);
 
-// Middleware de contexto de plagetFilteredTechStackntillas
+// Middleware de contexto de plantillas
 app.use((req, res, next) => {
   const { sets, theme } = resolveTemplateContext(req);
   req.templateSets = sets;
@@ -55,7 +55,7 @@ async function getGitHubService(req) {
   if (req.session && req.session.userId) {
     try {
       const credentials = await Config.getGitHubCredentials(req.session.userId);
-      if (credentials.token && credentials.username) {
+      if (credentials && credentials.token && credentials.username) {
         token = credentials.token;
         username = credentials.username;
         console.log(`🔑 Usando credenciales de GitHub del usuario (BD)`);
@@ -74,6 +74,78 @@ async function getGitHubService(req) {
 }
 
 // ==========================================
+// FUNCIÓN AUXILIAR: Validar campos de login
+// ==========================================
+function validateLoginFields(req, res, next) {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.redirect('/login?error=Todos los campos son obligatorios');
+  }
+
+  // Validar formato de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.redirect('/login?error=Ingresa un email válido');
+  }
+
+  if (password.length < 6) {
+    return res.redirect('/login?error=La contraseña debe tener al menos 6 caracteres');
+  }
+
+  next();
+}
+
+// ==========================================
+// FUNCIÓN AUXILIAR: Stack de ejemplo
+// ==========================================
+function getExampleTechStack(filteredProjects) {
+  const techColors = {
+    'JavaScript': '#f7df1e', 'TypeScript': '#3178c6', 'Python': '#3776ab',
+    'React': '#61dafb', 'Node.js': '#339933', 'Docker': '#2496ed',
+    'MongoDB': '#47a248', 'GraphQL': '#e10098', 'AWS': '#ff9900',
+    'Kubernetes': '#326ce5', 'Next.js': '#000000', 'Tailwind CSS': '#06b6d4',
+    'React Native': '#61dafb', 'Firebase': '#ffca28', 'Go': '#00add8'
+  };
+  const icons = {
+    'JavaScript': '📜', 'TypeScript': '🔷', 'Python': '🐍', 'React': '⚛️',
+    'Node.js': '💚', 'Docker': '🐳', 'MongoDB': '🍃', 'GraphQL': '◈',
+    'AWS': '☁️', 'Kubernetes': '☸️', 'Next.js': '▲', 'Tailwind CSS': '🌊',
+    'React Native': '📱', 'Firebase': '🔥', 'Go': '🔵'
+  };
+
+  const techCount = {};
+  filteredProjects.forEach(project => {
+    if (project.language) {
+      techCount[project.language] = (techCount[project.language] || 0) + 1;
+    }
+    if (project.techBadges) {
+      project.techBadges.forEach(badge => {
+        if (badge.name) {
+          techCount[badge.name] = (techCount[badge.name] || 0) + 1;
+        }
+      });
+    }
+  });
+
+  const total = filteredProjects.length || 1;
+  return Object.entries(techCount)
+    .map(([name, count]) => ({
+      name,
+      level: Math.min(Math.round((count / total) * 100), 100),
+      count,
+      stars: 0,
+      reposCount: count,
+      color: techColors[name] || '#6c5ce7',
+      icon: icons[name] || '💻',
+      repos: [],
+      percentage: Math.round((count / total) * 100)
+    }))
+    .sort((a, b) => b.level - a.level)
+    .slice(0, 12);
+}
+
+// ==========================================
 // RUTAS DE AUTENTICACIÓN
 // ==========================================
 
@@ -81,8 +153,9 @@ async function getGitHubService(req) {
 app.get('/login', isNotAuthenticated, async (req, res) => {
   try {
     const bodyHtml = await engine.render('login.ejs', {
-      error: req.query.error,
-      success: req.query.success
+      error: req.query.error || null,
+      success: req.query.success || null,
+      email: ''
     }, req.templateSets);
 
     const fullHtml = await engine.render('layout.ejs', {
@@ -96,33 +169,36 @@ app.get('/login', isNotAuthenticated, async (req, res) => {
 
     res.send(fullHtml);
   } catch (error) {
+    console.error('❌ Error en login:', error.message);
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
   }
 });
 
-// Procesar login
-app.post('/login', isNotAuthenticated, async (req, res) => {
+// Procesar login (CORREGIDO)
+app.post('/login', isNotAuthenticated, validateLoginFields, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.redirect('/login?error=Todos los campos son obligatorios');
-    }
-
+    // Buscar usuario
     const user = await User.findByEmail(email);
+    
     if (!user) {
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
 
+    // Verificar contraseña
     const isValid = await User.verifyPassword(password, user.password);
+    
     if (!isValid) {
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
 
     // Crear sesión
     req.session.userId = user.id;
-    req.session.userPlan = user.plan;
-    req.session.justLoggedIn = true; // 🆕 Flag para mostrar modal
+    req.session.userPlan = user.plan || 'free';
+    req.session.userEmail = user.email;
+    req.session.userName = user.full_name || user.username;
+    req.session.justLoggedIn = true;
 
     await User.updateLastLogin(user.id);
 
@@ -130,16 +206,18 @@ app.post('/login', isNotAuthenticated, async (req, res) => {
 
     // Redirigir a la página de bienvenida
     res.redirect('/welcome');
+    
   } catch (error) {
-    console.error('Error en login:', error);
-    res.redirect('/login?error=Error al iniciar sesión');
+    console.error('❌ Error en login:', error.message);
+    res.redirect('/login?error=Error al iniciar sesión. Intenta de nuevo.');
   }
 });
-// Página de bienvenida después del login (muestra modal)
+
+// Página de bienvenida después del login
 app.get('/welcome', isAuthenticated, async (req, res) => {
   try {
     const showModal = req.session.justLoggedIn || false;
-    req.session.justLoggedIn = false; // Limpiar flag
+    req.session.justLoggedIn = false;
 
     const user = await User.findById(req.session.userId);
     const returnTo = req.session.returnTo || '/';
@@ -162,6 +240,7 @@ app.get('/welcome', isAuthenticated, async (req, res) => {
 
     res.send(fullHtml);
   } catch (error) {
+    console.error('❌ Error en welcome:', error.message);
     res.redirect('/');
   }
 });
@@ -170,7 +249,7 @@ app.get('/welcome', isAuthenticated, async (req, res) => {
 app.get('/register', isNotAuthenticated, async (req, res) => {
   try {
     const bodyHtml = await engine.render('register.ejs', {
-      error: req.query.error
+      error: req.query.error || null
     }, req.templateSets);
 
     const fullHtml = await engine.render('layout.ejs', {
@@ -184,6 +263,7 @@ app.get('/register', isNotAuthenticated, async (req, res) => {
 
     res.send(fullHtml);
   } catch (error) {
+    console.error('❌ Error en registro:', error.message);
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
   }
 });
@@ -209,6 +289,11 @@ app.post('/register', isNotAuthenticated, async (req, res) => {
       return res.redirect('/register?error=El nombre de usuario debe tener al menos 3 caracteres');
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.redirect('/register?error=Ingresa un email válido');
+    }
+
     const existingEmail = await User.findByEmail(email);
     if (existingEmail) {
       return res.redirect('/register?error=El email ya está registrado');
@@ -224,7 +309,7 @@ app.post('/register', isNotAuthenticated, async (req, res) => {
     console.log(`✅ Registro: ${username} (${email})`);
     res.redirect('/login?success=Cuenta creada exitosamente. Inicia sesión.');
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error.message);
     res.redirect('/register?error=Error al crear la cuenta');
   }
 });
@@ -257,6 +342,7 @@ app.get('/profile', isAuthenticated, async (req, res) => {
 
     res.send(fullHtml);
   } catch (error) {
+    console.error('❌ Error en perfil:', error.message);
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
   }
 });
@@ -267,7 +353,6 @@ app.post('/profile', isAuthenticated, async (req, res) => {
     const { githubUsername, githubToken } = req.body;
 
     if (githubUsername || githubToken) {
-      // Guardar en la tabla config
       await Config.setGitHubCredentials(
         req.session.userId,
         githubUsername || null,
@@ -276,9 +361,9 @@ app.post('/profile', isAuthenticated, async (req, res) => {
       console.log(`🔑 Credenciales de GitHub actualizadas para usuario ID: ${req.session.userId}`);
     }
 
-    res.redirect('/profile?success=Perfil y credenciales actualizados');
+    res.redirect('/profile?success=Perfil actualizado correctamente');
   } catch (error) {
-    console.error('Error al actualizar perfil:', error);
+    console.error('❌ Error al actualizar perfil:', error.message);
     res.redirect('/profile?error=Error al actualizar');
   }
 });
@@ -339,7 +424,11 @@ app.get('/', async (req, res) => {
     // Stack tecnológico
     let techStack = [];
     if (githubService && filteredProjects.length > 0) {
-      techStack = githubService.getFilteredTechStack(filteredProjects);
+      try {
+        techStack = await githubService.getDynamicTechStack();
+      } catch (e) {
+        techStack = getExampleTechStack(filteredProjects);
+      }
     } else if (filteredProjects.length > 0) {
       techStack = getExampleTechStack(filteredProjects);
     }
@@ -398,6 +487,7 @@ app.get('/plans', async (req, res) => {
 
     res.send(fullHtml);
   } catch (error) {
+    console.error('❌ Error en planes:', error.message);
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p>`);
   }
 });
@@ -411,10 +501,14 @@ app.get('/set-plan/:planId', isAuthenticated, async (req, res) => {
     return res.redirect('/plans');
   }
 
-  await User.updatePlan(req.session.userId, planId);
-  req.session.userPlan = planId;
+  try {
+    await User.updatePlan(req.session.userId, planId);
+    req.session.userPlan = planId;
+    console.log(`📊 Plan actualizado: ${planId}`);
+  } catch (error) {
+    console.error('❌ Error al cambiar plan:', error.message);
+  }
 
-  console.log(`📊 Plan actualizado: ${planId}`);
   res.redirect('/plans');
 });
 
@@ -424,8 +518,8 @@ app.get('/set-plan/:planId', isAuthenticated, async (req, res) => {
 
 app.get('/admin', isAuthenticated, async (req, res) => {
   try {
-   const githubService = await getGitHubService(req);
-   let allProjects = [];
+    const githubService = await getGitHubService(req);
+    let allProjects = [];
 
     if (githubService) {
       try {
@@ -447,7 +541,7 @@ app.get('/admin', isAuthenticated, async (req, res) => {
 
     const user = await User.findById(req.session.userId);
     const userPlan = {
-      id: user.plan,
+      id: user.plan || 'free',
       name: planService.getPlan(user.plan).name,
       icon: planService.getPlan(user.plan).icon,
       maxProjects: planService.getPlan(user.plan).maxProjects,
@@ -472,7 +566,7 @@ app.get('/admin', isAuthenticated, async (req, res) => {
     const bodyHtml = await engine.render('admin.ejs', data, req.templateSets);
     const fullHtml = await engine.render('layout.ejs', {
       ...data,
-      user: req.user,
+      user: res.locals.user,
       userPlan: res.locals.userPlan,
       body: bodyHtml
     }, req.templateSets);
@@ -487,7 +581,6 @@ app.get('/admin', isAuthenticated, async (req, res) => {
 // API ENDPOINTS
 // ==========================================
 
-// API para obtener README
 app.get('/api/readme/:repoName', async (req, res) => {
   try {
     const githubService = await getGitHubService(req);
@@ -510,7 +603,6 @@ app.get('/api/readme/:repoName', async (req, res) => {
   }
 });
 
-// API de proyectos
 app.get('/api/projects', async (req, res) => {
   try {
     const githubService = await getGitHubService(req);
@@ -522,7 +614,6 @@ app.get('/api/projects', async (req, res) => {
   }
 });
 
-// API de perfil
 app.get('/api/profile', async (req, res) => {
   try {
     const githubService = await getGitHubService(req);
@@ -534,7 +625,6 @@ app.get('/api/profile', async (req, res) => {
   }
 });
 
-// API de stack tecnológico
 app.get('/api/tech-stack', async (req, res) => {
   try {
     const githubService = await getGitHubService(req);
@@ -546,7 +636,6 @@ app.get('/api/tech-stack', async (req, res) => {
   }
 });
 
-// API para guardar selección de proyectos
 app.post('/api/projects/selection', isAuthenticated, async (req, res) => {
   try {
     const { projects } = req.body;
@@ -579,7 +668,6 @@ app.post('/api/projects/selection', isAuthenticated, async (req, res) => {
   }
 });
 
-// API para obtener selección actual
 app.get('/api/projects/selection', isAuthenticated, async (req, res) => {
   try {
     const selected = await User.getSelectedProjects(req.session.userId);
@@ -602,7 +690,7 @@ app.get('/toggle-theme', (req, res) => {
     httpOnly: true
   });
 
-  if (req.session.userId) {
+  if (req.session && req.session.userId) {
     User.updateTheme(req.session.userId, newTheme).catch(() => {});
   }
 
@@ -677,56 +765,6 @@ app.use(async (req, res) => {
     `);
   }
 });
-
-// ==========================================
-// FUNCIÓN AUXILIAR: Stack de ejemplo
-// ==========================================
-
-function getExampleTechStack(filteredProjects) {
-  const techColors = {
-    'JavaScript': '#f7df1e', 'TypeScript': '#3178c6', 'Python': '#3776ab',
-    'React': '#61dafb', 'Node.js': '#339933', 'Docker': '#2496ed',
-    'MongoDB': '#47a248', 'GraphQL': '#e10098', 'AWS': '#ff9900',
-    'Kubernetes': '#326ce5', 'Next.js': '#000000', 'Tailwind CSS': '#06b6d4',
-    'React Native': '#61dafb', 'Firebase': '#ffca28', 'Go': '#00add8'
-  };
-  const icons = {
-    'JavaScript': '📜', 'TypeScript': '🔷', 'Python': '🐍', 'React': '⚛️',
-    'Node.js': '💚', 'Docker': '🐳', 'MongoDB': '🍃', 'GraphQL': '◈',
-    'AWS': '☁️', 'Kubernetes': '☸️', 'Next.js': '▲', 'Tailwind CSS': '🌊',
-    'React Native': '📱', 'Firebase': '🔥', 'Go': '🔵'
-  };
-
-  const techCount = {};
-  filteredProjects.forEach(project => {
-    if (project.language) {
-      techCount[project.language] = (techCount[project.language] || 0) + 1;
-    }
-    if (project.techBadges) {
-      project.techBadges.forEach(badge => {
-        if (badge.name) {
-          techCount[badge.name] = (techCount[badge.name] || 0) + 1;
-        }
-      });
-    }
-  });
-
-  const total = filteredProjects.length;
-  return Object.entries(techCount)
-    .map(([name, count]) => ({
-      name,
-      level: Math.min(Math.round((count / total) * 100), 100),
-      count,
-      stars: 0,
-      reposCount: count,
-      color: techColors[name] || '#6c5ce7',
-      icon: icons[name] || '💻',
-      repos: [],
-      percentage: Math.round((count / total) * 100)
-    }))
-    .sort((a, b) => b.level - a.level)
-    .slice(0, 12);
-}
 
 // ==========================================
 // INICIAR SERVIDOR

@@ -7,7 +7,7 @@ function isAuthenticated(req, res, next) {
   if (req.session && req.session.userId) {
     return next();
   }
-  
+
   req.session.returnTo = req.originalUrl;
   res.redirect('/login');
 }
@@ -29,7 +29,7 @@ async function loadUser(req, res, next) {
   res.locals.user = null;
   res.locals.userPlan = null;
   res.locals.selectedProjects = [];
-  
+
   if (req.session && req.session.userId) {
     try {
       const user = await User.findById(req.session.userId);
@@ -43,12 +43,12 @@ async function loadUser(req, res, next) {
           color: getPlanColor(user.plan),
           gradient: getPlanGradient(user.plan)
         };
-        res.locals.selectedProjects = user.selected_projects 
-          ? (typeof user.selected_projects === 'string' 
-            ? JSON.parse(user.selected_projects) 
+        res.locals.selectedProjects = user.selected_projects
+          ? (typeof user.selected_projects === 'string'
+            ? JSON.parse(user.selected_projects)
             : user.selected_projects)
           : [];
-        
+
         req.user = user;
         req.userPlan = res.locals.userPlan;
         req.selectedProjects = res.locals.selectedProjects;
@@ -59,6 +59,33 @@ async function loadUser(req, res, next) {
   }
   next();
 }
+
+// ✅ Nuevo middleware para validar campos de login
+function validateLoginFields(req, res, next) {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).render('login', {
+      error: 'Por favor, completa todos los campos.',
+      email: email || '',
+      theme: req.theme || 'light'
+    });
+  }
+
+  // Validar formato de email básico
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).render('login', {
+      error: 'Por favor, ingresa un email válido.',
+      email: email,
+      theme: req.theme || 'light'
+    });
+  }
+
+  next();
+}
+
+
 
 // Funciones auxiliares
 function getPlanName(plan) {
