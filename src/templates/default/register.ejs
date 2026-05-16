@@ -1,0 +1,84 @@
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+  <div style="background: var(--card-bg); border-radius: 20px; padding: 40px; max-width: 460px; width: 100%; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    
+    <!-- Logo y título -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <a href="/" style="font-size: 1.8rem; font-weight: 800; text-decoration: none; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">
+        DevCraft<span style="background: var(--accent2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Studio</span>
+      </a>
+      <h2 style="color: var(--text); margin-top: 20px; font-size: 1.5rem;">Crear Cuenta</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">Comienza a gestionar tu portafolio profesional</p>
+    </div>
+
+    <!-- Mensajes de error -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div style="background: #ff767520; color: #d63031; padding: 12px 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #ff767540;">
+        ⚠️ <%= error %>
+      </div>
+    <% } %>
+
+    <!-- Formulario -->
+    <form action="/register" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Nombre completo</label>
+        <input type="text" name="fullName" 
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="Tu nombre (opcional)"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Nombre de usuario *</label>
+        <input type="text" name="username" required minlength="3"
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="usuario123"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Email *</label>
+        <input type="email" name="email" required 
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="tu@email.com"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Contraseña *</label>
+        <input type="password" name="password" required minlength="6"
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="Mínimo 6 caracteres"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Confirmar contraseña *</label>
+        <input type="password" name="confirmPassword" required minlength="6"
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="Repite la contraseña"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <button type="submit" style="background: var(--gradient); color: white; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+              onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 10px 30px var(--accent-glow)'"
+              onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+        ✨ Crear Cuenta
+      </button>
+    </form>
+
+    <!-- Enlace a login -->
+    <p style="text-align: center; margin-top: 25px; color: var(--text-secondary); font-size: 0.9rem;">
+      ¿Ya tienes cuenta? <a href="/login" style="color: var(--accent); text-decoration: none; font-weight: 600;">Inicia sesión</a>
+    </p>
+
+    <!-- Volver al inicio -->
+    <p style="text-align: center; margin-top: 15px;">
+      <a href="/" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">← Volver al inicio</a>
+    </p>
+  </div>
+</div>

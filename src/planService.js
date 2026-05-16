@@ -1,7 +1,3 @@
-/**
- * Sistema de planes para mostrar repositorios
- */
-
 const PLANS = {
   free: {
     name: 'Gratis',
@@ -71,9 +67,6 @@ class PlanService {
     this.plans = PLANS;
   }
 
-  /**
-   * Obtiene todos los planes disponibles
-   */
   getAllPlans() {
     return Object.entries(this.plans).map(([key, plan]) => ({
       id: key,
@@ -81,48 +74,35 @@ class PlanService {
     }));
   }
 
-  /**
-   * Obtiene un plan específico
-   */
   getPlan(planId) {
     return this.plans[planId] || this.plans.free;
   }
 
-  /**
-   * Obtiene el plan del usuario desde cookie o query
-   */
   getUserPlan(req) {
-    // Prioridad: query > cookie > default (free)
-    const planId = req.query.plan || req.cookies?.userPlan || 'free';
+    // Si el middleware loadUser ya asignó userPlan, usarlo
+    if (req.userPlan) return req.userPlan;
+    
+    // Si no, obtener desde sesión o query
+    const planId = req.session?.userPlan || req.query.plan || 'free';
     return {
       id: planId,
       ...this.getPlan(planId)
     };
   }
 
-  /**
-   * Filtra proyectos según el plan del usuario
-   */
   filterProjectsByPlan(projects, planId, selectedProjects = null) {
     const plan = this.getPlan(planId);
     
-    // Si hay proyectos seleccionados manualmente, filtrar por esos
     if (selectedProjects && Array.isArray(selectedProjects) && selectedProjects.length > 0) {
       const selectedSet = new Set(selectedProjects);
       return projects.filter(p => selectedSet.has(p.name));
     }
     
-    // Si no, limitar por cantidad del plan
-    if (plan.maxProjects === Infinity) {
-      return projects;
-    }
+    if (plan.maxProjects === Infinity) return projects;
     
     return projects.slice(0, plan.maxProjects);
   }
 
-  /**
-   * Obtiene los proyectos seleccionados desde cookie
-   */
   getSelectedProjects(req) {
     try {
       const selected = req.cookies?.selectedProjects;
@@ -132,9 +112,6 @@ class PlanService {
     }
   }
 
-  /**
-   * Guarda los proyectos seleccionados en cookie
-   */
   setSelectedProjectsCookie(res, projects) {
     res.cookie('selectedProjects', JSON.stringify(projects), {
       maxAge: 30 * 24 * 60 * 60 * 1000,

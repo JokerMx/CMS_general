@@ -11,6 +11,9 @@ class GitHubService {
     };
   }
 
+  /**
+   * Obtiene todos los repositorios del usuario (públicos y privados)
+   */
   async getRepositories() {
     try {
       const response = await axios.get(`${this.baseURL}/user/repos`, {
@@ -61,6 +64,9 @@ class GitHubService {
     }
   }
 
+  /**
+   * Obtiene repositorios formateados para mostrar en el portafolio
+   */
   async getPortfolioProjects() {
     const repos = await this.getRepositories();
     
@@ -89,104 +95,9 @@ class GitHubService {
       }));
   }
 
-/**
- * 🆕 Genera el stack tecnológico basado SOLO en los proyectos proporcionados
- * (los que están visibles en el portafolio según plan y selección)
- */
-getFilteredTechStack(filteredProjects) {
-  const techColors = {
-    'JavaScript': '#f7df1e', 'TypeScript': '#3178c6', 'Python': '#3776ab',
-    'Java': '#007396', 'Go': '#00add8', 'Rust': '#dea584', 'Ruby': '#cc342d',
-    'PHP': '#777bb4', 'C++': '#00599c', 'C#': '#239120', 'Swift': '#fa7343',
-    'Kotlin': '#7f52ff', 'Dart': '#0175c2', 'React': '#61dafb', 'Vue.js': '#4fc08d',
-    'Angular': '#dd1b16', 'Node.js': '#339933', 'Docker': '#2496ed',
-    'Kubernetes': '#326ce5', 'AWS': '#ff9900', 'Azure': '#0089d6', 'GCP': '#4285f4',
-    'MongoDB': '#47a248', 'PostgreSQL': '#336791', 'MySQL': '#4479a1',
-    'Redis': '#dc382d', 'GraphQL': '#e10098', 'REST API': '#009688',
-    'Next.js': '#000000', 'Tailwind CSS': '#06b6d4', 'Sass': '#cc6699',
-    'React Native': '#61dafb', 'Flutter': '#02569b', 'Electron': '#47848f',
-    'TensorFlow': '#ff6f00', 'PyTorch': '#ee4c2c', 'Linux': '#fcc624',
-    'Jest': '#c21325', 'Vite': '#646cff', 'Bootstrap': '#7952b3'
-  };
-
-  const icons = {
-    'JavaScript': '📜', 'TypeScript': '🔷', 'Python': '🐍', 'Java': '☕',
-    'Go': '🔵', 'Rust': '🦀', 'Ruby': '💎', 'PHP': '🐘', 'C++': '⚡',
-    'C#': '🎯', 'Swift': '🍎', 'Kotlin': '🅱️', 'Dart': '🎯', 'React': '⚛️',
-    'Vue.js': '💚', 'Angular': '🔴', 'Node.js': '💚', 'Docker': '🐳',
-    'Kubernetes': '☸️', 'AWS': '☁️', 'Azure': '🔷', 'GCP': '🌈',
-    'MongoDB': '🍃', 'PostgreSQL': '🐘', 'MySQL': '🐬', 'Redis': '🔴',
-    'GraphQL': '◈', 'REST API': '🔗', 'Next.js': '▲', 'Tailwind CSS': '🌊',
-    'Sass': '💅', 'React Native': '📱', 'Flutter': '💙', 'Electron': '💻',
-    'TensorFlow': '🧠', 'PyTorch': '🔥', 'Linux': '🐧', 'Jest': '🃏',
-    'Vite': '⚡', 'Bootstrap': '🟣'
-  };
-
-  if (!filteredProjects || filteredProjects.length === 0) {
-    return [];
-  }
-
-  // Contar tecnologías solo de los proyectos visibles
-  const techCount = {};
-  const techStars = {};
-  const techRepos = {};
-
-  filteredProjects.forEach(project => {
-    // Contar lenguaje principal
-    if (project.language) {
-      techCount[project.language] = (techCount[project.language] || 0) + 1;
-      techStars[project.language] = (techStars[project.language] || 0) + (project.stars || 0);
-      if (!techRepos[project.language]) techRepos[project.language] = [];
-      techRepos[project.language].push(project.name);
-    }
-
-    // Contar tecnologías de los badges
-    if (project.techBadges && project.techBadges.length > 0) {
-      project.techBadges.forEach(badge => {
-        if (badge.name && badge.name !== project.language) {
-          techCount[badge.name] = (techCount[badge.name] || 0) + 1;
-          techStars[badge.name] = (techStars[badge.name] || 0) + (project.stars || 0);
-          if (!techRepos[badge.name]) techRepos[badge.name] = [];
-          if (techRepos[badge.name].indexOf(project.name) === -1) {
-            techRepos[badge.name].push(project.name);
-          }
-        }
-      });
-    }
-  });
-
-  // Calcular nivel (0-100) basado en frecuencia dentro de los proyectos visibles
-  const totalProjects = filteredProjects.length;
-  
-  const techStack = Object.entries(techCount)
-    .map(([name, count]) => {
-      const stars = techStars[name] || 0;
-      const reposUsing = techRepos[name] || [];
-      
-      // Nivel basado en: 50% frecuencia en proyectos + 30% estrellas + 20% cantidad repos
-      const frequencyScore = Math.min((count / totalProjects) * 50, 50);
-      const starsScore = Math.min((stars / Math.max(...Object.values(techStars), 1)) * 30, 30);
-      const reposScore = Math.min((reposUsing.length / totalProjects) * 20, 20);
-      const level = Math.min(Math.round(frequencyScore + starsScore + reposScore), 100);
-
-      return {
-        name,
-        level: Math.max(level, 10), // mínimo 10% para que se vea algo
-        count,
-        stars,
-        reposCount: reposUsing.length,
-        color: techColors[name] || '#6c5ce7',
-        icon: icons[name] || '💻',
-        repos: reposUsing.slice(0, 5),
-        percentage: Math.round((count / totalProjects) * 100) // % de proyectos que usan esta tecnología
-      };
-    })
-    .sort((a, b) => b.level - a.level)
-    .slice(0, 12);
-
-  return techStack;
-}
-
+  /**
+   * Obtiene estadísticas del perfil de GitHub
+   */
   async getProfileStats() {
     try {
       const [userResponse, repos] = await Promise.all([
@@ -214,6 +125,9 @@ getFilteredTechStack(filteredProjects) {
     }
   }
 
+  /**
+   * Genera el stack tecnológico basado en TODOS los repositorios
+   */
   async getDynamicTechStack() {
     const repos = await this.getRepositories();
     
@@ -226,12 +140,11 @@ getFilteredTechStack(filteredProjects) {
       'Kubernetes': '#326ce5', 'AWS': '#ff9900', 'Azure': '#0089d6', 'GCP': '#4285f4',
       'MongoDB': '#47a248', 'PostgreSQL': '#336791', 'MySQL': '#4479a1',
       'Redis': '#dc382d', 'GraphQL': '#e10098', 'REST API': '#009688',
-      'Webpack': '#8dd6f9', 'Vite': '#646cff', 'Next.js': '#000000',
-      'Nuxt.js': '#00dc82', 'Svelte': '#ff3e00', 'Flutter': '#02569b',
-      'React Native': '#61dafb', 'Electron': '#47848f', 'TensorFlow': '#ff6f00',
-      'PyTorch': '#ee4c2c', 'Linux': '#fcc624', 'Nginx': '#009639',
-      'GitHub Actions': '#2088ff', 'Jest': '#c21325', 'Tailwind CSS': '#06b6d4',
-      'Sass': '#cc6699', 'Bootstrap': '#7952b3'
+      'Next.js': '#000000', 'Tailwind CSS': '#06b6d4', 'Sass': '#cc6699',
+      'React Native': '#61dafb', 'Flutter': '#02569b', 'Electron': '#47848f',
+      'Firebase': '#ffca28', 'TensorFlow': '#ff6f00', 'PyTorch': '#ee4c2c',
+      'Linux': '#fcc624', 'Jest': '#c21325', 'Vite': '#646cff', 'Bootstrap': '#7952b3',
+      'Webpack': '#8dd6f9', 'Nginx': '#009639', 'GitHub Actions': '#2088ff'
     };
 
     const icons = {
@@ -241,11 +154,11 @@ getFilteredTechStack(filteredProjects) {
       'Vue.js': '💚', 'Angular': '🔴', 'Node.js': '💚', 'Docker': '🐳',
       'Kubernetes': '☸️', 'AWS': '☁️', 'Azure': '🔷', 'GCP': '🌈',
       'MongoDB': '🍃', 'PostgreSQL': '🐘', 'MySQL': '🐬', 'Redis': '🔴',
-      'GraphQL': '◈', 'REST API': '🔗', 'Webpack': '📦', 'Vite': '⚡',
-      'Next.js': '▲', 'Nuxt.js': '💚', 'Svelte': '🧡', 'Flutter': '💙',
-      'React Native': '📱', 'Electron': '💻', 'TensorFlow': '🧠', 'PyTorch': '🔥',
-      'Linux': '🐧', 'Nginx': '🟢', 'GitHub Actions': '🔄', 'Jest': '🃏',
-      'Tailwind CSS': '🌊', 'Sass': '💅', 'Bootstrap': '🟣'
+      'GraphQL': '◈', 'REST API': '🔗', 'Next.js': '▲', 'Tailwind CSS': '🌊',
+      'Sass': '💅', 'React Native': '📱', 'Flutter': '💙', 'Electron': '💻',
+      'Firebase': '🔥', 'TensorFlow': '🧠', 'PyTorch': '🔥', 'Linux': '🐧',
+      'Jest': '🃏', 'Vite': '⚡', 'Bootstrap': '🟣', 'Webpack': '📦',
+      'Nginx': '🟢', 'GitHub Actions': '🔄'
     };
 
     const techCount = {};
@@ -281,12 +194,22 @@ getFilteredTechStack(filteredProjects) {
       .map(([name, count]) => {
         const stars = techStars[name] || 0;
         const reposUsing = techRepos[name] || [];
+        
         const countScore = (count / maxCount) * 40;
         const starsScore = Math.min((stars / maxStars) * 40, 40);
         const frequencyScore = Math.min((reposUsing.length / repos.length) * 20, 20);
         const level = Math.min(Math.round(countScore + starsScore + frequencyScore), 100);
 
-        return { name, level, count, stars, reposCount: reposUsing.length, color: techColors[name] || '#6c5ce7', icon: icons[name] || '💻', repos: reposUsing.slice(0, 5) };
+        return {
+          name,
+          level,
+          count,
+          stars,
+          reposCount: reposUsing.length,
+          color: techColors[name] || '#6c5ce7',
+          icon: icons[name] || '💻',
+          repos: reposUsing.slice(0, 5)
+        };
       })
       .sort((a, b) => b.level - a.level)
       .slice(0, 12);
@@ -294,26 +217,169 @@ getFilteredTechStack(filteredProjects) {
     return techStack;
   }
 
+  /**
+   * Genera el stack tecnológico basado SOLO en los proyectos filtrados
+   * (los que están visibles en el portafolio según plan y selección)
+   */
+  getFilteredTechStack(filteredProjects) {
+    const techColors = {
+      'JavaScript': '#f7df1e', 'TypeScript': '#3178c6', 'Python': '#3776ab',
+      'Java': '#007396', 'Go': '#00add8', 'Rust': '#dea584', 'Ruby': '#cc342d',
+      'PHP': '#777bb4', 'C++': '#00599c', 'C#': '#239120', 'Swift': '#fa7343',
+      'Kotlin': '#7f52ff', 'Dart': '#0175c2', 'React': '#61dafb', 'Vue.js': '#4fc08d',
+      'Angular': '#dd1b16', 'Node.js': '#339933', 'Docker': '#2496ed',
+      'Kubernetes': '#326ce5', 'AWS': '#ff9900', 'Azure': '#0089d6', 'GCP': '#4285f4',
+      'MongoDB': '#47a248', 'PostgreSQL': '#336791', 'MySQL': '#4479a1',
+      'Redis': '#dc382d', 'GraphQL': '#e10098', 'REST API': '#009688',
+      'Next.js': '#000000', 'Tailwind CSS': '#06b6d4', 'Sass': '#cc6699',
+      'React Native': '#61dafb', 'Flutter': '#02569b', 'Electron': '#47848f',
+      'Firebase': '#ffca28', 'TensorFlow': '#ff6f00', 'PyTorch': '#ee4c2c',
+      'Linux': '#fcc624', 'Jest': '#c21325', 'Vite': '#646cff', 'Bootstrap': '#7952b3',
+      'Webpack': '#8dd6f9', 'Nginx': '#009639', 'GitHub Actions': '#2088ff'
+    };
+
+    const icons = {
+      'JavaScript': '📜', 'TypeScript': '🔷', 'Python': '🐍', 'Java': '☕',
+      'Go': '🔵', 'Rust': '🦀', 'Ruby': '💎', 'PHP': '🐘', 'C++': '⚡',
+      'C#': '🎯', 'Swift': '🍎', 'Kotlin': '🅱️', 'Dart': '🎯', 'React': '⚛️',
+      'Vue.js': '💚', 'Angular': '🔴', 'Node.js': '💚', 'Docker': '🐳',
+      'Kubernetes': '☸️', 'AWS': '☁️', 'Azure': '🔷', 'GCP': '🌈',
+      'MongoDB': '🍃', 'PostgreSQL': '🐘', 'MySQL': '🐬', 'Redis': '🔴',
+      'GraphQL': '◈', 'REST API': '🔗', 'Next.js': '▲', 'Tailwind CSS': '🌊',
+      'Sass': '💅', 'React Native': '📱', 'Flutter': '💙', 'Electron': '💻',
+      'Firebase': '🔥', 'TensorFlow': '🧠', 'PyTorch': '🔥', 'Linux': '🐧',
+      'Jest': '🃏', 'Vite': '⚡', 'Bootstrap': '🟣', 'Webpack': '📦',
+      'Nginx': '🟢', 'GitHub Actions': '🔄'
+    };
+
+    if (!filteredProjects || filteredProjects.length === 0) {
+      return [];
+    }
+
+    const techCount = {};
+    const techStars = {};
+    const techRepos = {};
+
+    filteredProjects.forEach(project => {
+      if (project.language) {
+        techCount[project.language] = (techCount[project.language] || 0) + 1;
+        techStars[project.language] = (techStars[project.language] || 0) + (project.stars || 0);
+        if (!techRepos[project.language]) techRepos[project.language] = [];
+        techRepos[project.language].push(project.name);
+      }
+
+      if (project.techBadges && project.techBadges.length > 0) {
+        project.techBadges.forEach(badge => {
+          if (badge.name && badge.name !== project.language) {
+            techCount[badge.name] = (techCount[badge.name] || 0) + 1;
+            techStars[badge.name] = (techStars[badge.name] || 0) + (project.stars || 0);
+            if (!techRepos[badge.name]) techRepos[badge.name] = [];
+            if (techRepos[badge.name].indexOf(project.name) === -1) {
+              techRepos[badge.name].push(project.name);
+            }
+          }
+        });
+      }
+    });
+
+    const totalProjects = filteredProjects.length;
+    
+    const techStack = Object.entries(techCount)
+      .map(([name, count]) => {
+        const stars = techStars[name] || 0;
+        const reposUsing = techRepos[name] || [];
+        
+        const frequencyScore = Math.min((count / totalProjects) * 50, 50);
+        const starsScore = Math.min((stars / Math.max(...Object.values(techStars), 1)) * 30, 30);
+        const reposScore = Math.min((reposUsing.length / totalProjects) * 20, 20);
+        const level = Math.min(Math.round(frequencyScore + starsScore + reposScore), 100);
+
+        return {
+          name,
+          level: Math.max(level, 10),
+          count,
+          stars,
+          reposCount: reposUsing.length,
+          color: techColors[name] || '#6c5ce7',
+          icon: icons[name] || '💻',
+          repos: reposUsing.slice(0, 5),
+          percentage: Math.round((count / totalProjects) * 100)
+        };
+      })
+      .sort((a, b) => b.level - a.level)
+      .slice(0, 12);
+
+    return techStack;
+  }
+
+  /**
+   * Extrae los lenguajes más usados
+   */
   getTopLanguages(repos) {
     const langCount = {};
     repos.forEach(repo => {
-      if (repo.language) langCount[repo.language] = (langCount[repo.language] || 0) + 1;
+      if (repo.language) {
+        langCount[repo.language] = (langCount[repo.language] || 0) + 1;
+      }
     });
-    return Object.entries(langCount).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([lang, count]) => ({ name: lang, count }));
+    
+    return Object.entries(langCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([lang, count]) => ({ name: lang, count }));
   }
 
+  /**
+   * Genera badges de tecnologías basados en el lenguaje y topics
+   */
   getTechBadges(language, topics) {
     const badges = [];
+    
     const techColors = {
-      'JavaScript': '#f7df1e', 'TypeScript': '#3178c6', 'Python': '#3776ab',
-      'React': '#61dafb', 'Vue': '#4fc08d', 'Node.js': '#339933',
-      'Docker': '#2496ed', 'AWS': '#ff9900', 'MongoDB': '#47a248',
-      'PostgreSQL': '#336791', 'Redis': '#dc382d', 'GraphQL': '#e10098'
+      'JavaScript': '#f7df1e',
+      'TypeScript': '#3178c6',
+      'Python': '#3776ab',
+      'Java': '#007396',
+      'Go': '#00add8',
+      'Rust': '#dea584',
+      'Ruby': '#cc342d',
+      'PHP': '#777bb4',
+      'C++': '#00599c',
+      'C#': '#239120',
+      'Swift': '#fa7343',
+      'Kotlin': '#7f52ff',
+      'Dart': '#0175c2',
+      'React': '#61dafb',
+      'Vue': '#4fc08d',
+      'Angular': '#dd1b16',
+      'Node.js': '#339933',
+      'Docker': '#2496ed',
+      'Kubernetes': '#326ce5',
+      'AWS': '#ff9900',
+      'MongoDB': '#47a248',
+      'PostgreSQL': '#336791',
+      'Redis': '#dc382d',
+      'GraphQL': '#e10098'
     };
-    if (language) badges.push({ name: language, color: techColors[language] || '#6c5ce7' });
-    topics.forEach(topic => {
-      if (techColors[topic]) badges.push({ name: topic, color: techColors[topic] });
-    });
+
+    if (language) {
+      badges.push({
+        name: language,
+        color: techColors[language] || '#6c5ce7'
+      });
+    }
+
+    if (topics) {
+      topics.forEach(topic => {
+        if (techColors[topic]) {
+          badges.push({
+            name: topic,
+            color: techColors[topic]
+          });
+        }
+      });
+    }
+
     return badges;
   }
 }

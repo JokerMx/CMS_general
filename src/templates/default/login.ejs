@@ -1,0 +1,63 @@
+<div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px;">
+  <div style="background: var(--card-bg); border-radius: 20px; padding: 40px; max-width: 420px; width: 100%; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    
+    <!-- Logo y título -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <a href="/" style="font-size: 1.8rem; font-weight: 800; text-decoration: none; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">
+        DevCraft<span style="background: var(--accent2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Studio</span>
+      </a>
+      <h2 style="color: var(--text); margin-top: 20px; font-size: 1.5rem;">Iniciar Sesión</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">Accede a tu panel de administración</p>
+    </div>
+
+    <!-- Mensajes de error/éxito -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div style="background: #ff767520; color: #d63031; padding: 12px 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #ff767540;">
+        ⚠️ <%= error %>
+      </div>
+    <% } %>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div style="background: #00b89420; color: #00b894; padding: 12px 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; border: 1px solid #00b89440;">
+        ✅ <%= success %>
+      </div>
+    <% } %>
+
+    <!-- Formulario -->
+    <form action="/login" method="POST" style="display: flex; flex-direction: column; gap: 18px;">
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Email</label>
+        <input type="email" name="email" required 
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="tu@email.com"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">Contraseña</label>
+        <input type="password" name="password" required 
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="••••••••"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <button type="submit" style="background: var(--gradient); color: white; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+              onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 10px 30px var(--accent-glow)'"
+              onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+        🔐 Iniciar Sesión
+      </button>
+    </form>
+
+    <!-- Enlace a registro -->
+    <p style="text-align: center; margin-top: 25px; color: var(--text-secondary); font-size: 0.9rem;">
+      ¿No tienes cuenta? <a href="/register" style="color: var(--accent); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
+    </p>
+
+    <!-- Volver al inicio -->
+    <p style="text-align: center; margin-top: 15px;">
+      <a href="/" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">← Volver al inicio</a>
+    </p>
+  </div>
+</div>

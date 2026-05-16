@@ -1,0 +1,91 @@
+<section style="padding: 60px 20px; max-width: 700px; margin: 0 auto;">
+  <div style="text-align: center; margin-bottom: 40px;">
+    <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
+      👤 MI PERFIL
+    </span>
+    <h1 style="font-size: 2.5rem; margin-bottom: 10px; color: var(--text);">Configuración de Usuario</h1>
+    <p style="color: var(--text-secondary);">Gestiona tu cuenta y conecta GitHub.</p>
+  </div>
+
+  <div style="background: var(--card-bg); border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    
+    <!-- Info actual -->
+    <div style="margin-bottom: 30px;">
+      <h3 style="color: var(--text); margin-bottom: 15px;">📋 Información de cuenta</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px; color: var(--text-secondary);">
+        <p><strong style="color: var(--text);">Usuario:</strong> <%= user.username %></p>
+        <p><strong style="color: var(--text);">Email:</strong> <%= user.email %></p>
+        <p><strong style="color: var(--text);">Nombre:</strong> <%= user.full_name || 'No configurado' %></p>
+        <p><strong style="color: var(--text);">Plan actual:</strong> 
+          <span style="color: var(--accent); font-weight: 600; text-transform: capitalize;"><%= user.plan %></span>
+        </p>
+        <p><strong style="color: var(--text);">Miembro desde:</strong> <%= user.created_at ? new Date(user.created_at).toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A' %></p>
+      </div>
+    </div>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 25px 0;">
+
+    <!-- Formulario GitHub -->
+    <form action="/profile" method="POST" style="display: flex; flex-direction: column; gap: 18px;">
+      <h3 style="color: var(--text); margin-bottom: 5px;">🔑 Credenciales de GitHub</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 10px;">
+        Configura tu token personal de GitHub para mostrar tus repositorios públicos y privados en el portafolio.
+        Si no configuras credenciales, se usarán las del archivo <code>.env</code>.
+      </p>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
+          🐙 Usuario de GitHub
+        </label>
+        <input type="text" name="githubUsername" value="<%= user.github_username || '' %>"
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="octocat"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+      </div>
+      
+      <div>
+        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
+          🔐 Token de acceso personal
+        </label>
+        <input type="password" name="githubToken" value="<%= user.github_token || '' %>"
+               style="width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;"
+               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+               onfocus="this.style.borderColor='var(--accent)'"
+               onblur="this.style.borderColor='var(--border)'">
+        <div style="margin-top: 8px; padding: 10px 14px; background: var(--badge-bg); border-radius: 8px; border: 1px solid var(--border);">
+          <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 5px;">
+            📌 <strong style="color: var(--text);">¿Cómo obtener tu token?</strong>
+          </p>
+          <ol style="color: var(--text-secondary); font-size: 0.78rem; margin-left: 18px; line-height: 1.8;">
+            <li>Ve a <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--accent);">GitHub Settings → Tokens</a></li>
+            <li>Haz clic en <strong>"Generate new token (classic)"</strong></li>
+            <li>Selecciona los permisos: <code>repo</code> y <code>read:user</code></li>
+            <li>Copia el token generado y pégalo aquí</li>
+          </ol>
+        </div>
+      </div>
+      
+      <button type="submit" style="background: var(--gradient); color: white; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+              onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 10px 30px var(--accent-glow)'"
+              onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
+        💾 Guardar Credenciales
+      </button>
+    </form>
+
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 25px 0;">
+
+    <!-- Acciones -->
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <a href="/plans" style="background: var(--badge-bg); color: var(--text); padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; border: 1px solid var(--border);">
+        📊 Gestionar Plan
+      </a>
+      <a href="/admin" style="background: var(--badge-bg); color: var(--text); padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; border: 1px solid var(--border);">
+        ⚙️ Administrar Proyectos
+      </a>
+      <a href="/logout" style="background: #ff767520; color: #d63031; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; border: 1px solid #ff767540;">
+        🚪 Cerrar Sesión
+      </a>
+    </div>
+  </div>
+</section>

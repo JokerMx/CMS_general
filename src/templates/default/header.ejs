@@ -4,24 +4,25 @@
       <a href="/" style="font-size: 1.6rem; font-weight: 800; text-decoration: none; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
         DevCraft<span style="background: var(--accent2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Studio</span>
       </a>
-      <!-- Badge del plan actual -->
-      <% if (typeof userPlan !== 'undefined' && userPlan) { %>
+      <!-- Badge del plan (solo si está autenticado) -->
+      <% if (typeof userPlan !== 'undefined' && userPlan && typeof user !== 'undefined' && user) { %>
         <a href="/plans" style="text-decoration: none;">
           <span style="background: <%= userPlan.color || '#6c5ce7' %>20; color: <%= userPlan.color || '#6c5ce7' %>; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid <%= userPlan.color || '#6c5ce7' %>40;">
-            <%= userPlan.icon %> <%= userPlan.name %>
+            <%= userPlan.icon || '🆓' %> <%= userPlan.name || 'Gratis' %>
           </span>
         </a>
       <% } %>
     </div>
     
-    <ul style="display: flex; list-style: none; gap: 25px; align-items: center;">
+    <ul style="display: flex; list-style: none; gap: 20px; align-items: center;">
       <li><a href="/#hero" style="color: var(--text); text-decoration: none; font-weight: 500;">Inicio</a></li>
       <li><a href="/#services" style="color: var(--text); text-decoration: none; font-weight: 500;">Servicios</a></li>
       <li><a href="/#portfolio" style="color: var(--text); text-decoration: none; font-weight: 500;">Proyectos</a></li>
       <li><a href="/#tech-stack" style="color: var(--text); text-decoration: none; font-weight: 500;">Tecnologías</a></li>
-      <li><a href="/plans" style="color: var(--accent); text-decoration: none; font-weight: 600;">Planes</a></li>
+      <li><a href="/plans" style="color: var(--text); text-decoration: none; font-weight: 500;">Planes</a></li>
       <li><a href="/#contact" style="color: var(--text); text-decoration: none; font-weight: 500;">Contacto</a></li>
-      <li><a href="/admin" style="color: var(--accent); text-decoration: none; font-weight: 500;">Admin</a></li>
+      
+      <!-- Botón de tema -->
       <li>
         <a href="/toggle-theme?current=<%= theme %>" style="background: var(--card-bg); padding: 8px 12px; border-radius: 50px; border: 1px solid var(--border); font-size: 1.2rem; text-decoration: none; cursor: pointer; transition: transform 0.2s; display: inline-block;"
            onmouseover="this.style.transform='scale(1.1)'"
@@ -30,6 +31,63 @@
           <%= theme === 'dark' ? '☀️' : '🌙' %>
         </a>
       </li>
+      
+      <!-- Login / Usuario -->
+      <li>
+        <% if (typeof user !== 'undefined' && user) { %>
+          <!-- Usuario autenticado: dropdown -->
+          <div style="position: relative; display: inline-block;">
+            <button onclick="toggleUserMenu()" style="background: var(--gradient); color: white; padding: 8px 16px; border-radius: 50px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; gap: 8px;"
+                    onmouseover="this.style.transform='scale(1.05)'"
+                    onmouseout="this.style.transform='scale(1)'">
+              👤 <%= user.username %>
+              <span style="font-size: 0.7rem;">▼</span>
+            </button>
+            <div id="user-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid var(--border); min-width: 180px; z-index: 100; overflow: hidden;">
+              <a href="/profile" style="display: block; padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
+                 onmouseover="this.style.background='var(--badge-bg)'"
+                 onmouseout="this.style.background='transparent'">👤 Mi Perfil</a>
+              <a href="/admin" style="display: block; padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
+                 onmouseover="this.style.background='var(--badge-bg)'"
+                 onmouseout="this.style.background='transparent'">⚙️ Administrar</a>
+              <a href="/plans" style="display: block; padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
+                 onmouseover="this.style.background='var(--badge-bg)'"
+                 onmouseout="this.style.background='transparent'">📊 Planes</a>
+              <hr style="border: none; border-top: 1px solid var(--border); margin: 0;">
+              <a href="/logout" style="display: block; padding: 12px 18px; color: #d63031; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
+                 onmouseover="this.style.background='#ff767520'"
+                 onmouseout="this.style.background='transparent'">🚪 Cerrar Sesión</a>
+            </div>
+          </div>
+        <% } else { %>
+          <!-- Usuario no autenticado: botón login -->
+          <a href="/login" style="background: var(--gradient); color: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s; display: inline-block;"
+             onmouseover="this.style.transform='scale(1.05)'"
+             onmouseout="this.style.transform='scale(1)'">
+            🔐 Iniciar Sesión
+          </a>
+        <% } %>
+      </li>
     </ul>
   </nav>
 </header>
+
+<script>
+  function toggleUserMenu() {
+    var dropdown = document.getElementById('user-dropdown');
+    if (dropdown.style.display === 'block') {
+      dropdown.style.display = 'none';
+    } else {
+      dropdown.style.display = 'block';
+    }
+  }
+  
+  // Cerrar dropdown al hacer clic fuera
+  document.addEventListener('click', function(e) {
+    var dropdown = document.getElementById('user-dropdown');
+    var button = e.target.closest('button');
+    if (dropdown && !button && dropdown.style.display === 'block') {
+      dropdown.style.display = 'none';
+    }
+  });
+</script>
