@@ -177,7 +177,7 @@ app.get('/login', isNotAuthenticated, async (req, res) => {
 app.post('/login', isNotAuthenticated, async (req, res) => {
   try {
     const { email, password } = req.body;
-    
+
     console.log('\n🔐 INTENTO DE LOGIN');
     console.log('   Email:', email);
     console.log('   Password:', password ? 'Recibido' : 'Vacío');
@@ -190,22 +190,22 @@ app.post('/login', isNotAuthenticated, async (req, res) => {
     // Verificar conexión a BD
     const pool = require('./database').getPool();
     console.log('   Pool BD:', pool ? 'Disponible ✅' : 'NO DISPONIBLE ❌');
-    
+
     if (!pool) {
       return res.redirect('/login?error=Error de conexión a la base de datos');
     }
 
     const user = await User.findByEmail(email);
-    
+
     if (!user) {
       console.log('❌ Usuario no encontrado:', email);
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
-    
+
     console.log('✅ Usuario encontrado:', user.username);
 
     const isValid = await User.verifyPassword(password, user.password);
-    
+
     if (!isValid) {
       console.log('❌ Contraseña incorrecta');
       return res.redirect('/login?error=Email o contraseña incorrectos');
@@ -220,8 +220,13 @@ app.post('/login', isNotAuthenticated, async (req, res) => {
 
     await User.updateLastLogin(user.id);
     console.log('✅ Login exitoso:', user.username);
-    res.redirect('/welcome');
-    
+    // Redirigir según el rol
+    if (user.role === 'admin' || user.role === 'owner') {
+      res.redirect('/admin/users');
+    } else {
+      res.redirect('/welcome');
+    }
+
   } catch (error) {
     console.error('❌ Error en login:', error.message);
     res.redirect('/login?error=Error al iniciar sesión');
