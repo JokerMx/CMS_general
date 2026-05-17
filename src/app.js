@@ -1,4 +1,13 @@
 require('dotenv').config();
+
+// 🆕 Forzar lectura de variables en Vercel
+console.log('🔍 Verificando variables de entorno:');
+console.log('   DB_HOST:', process.env.DB_HOST || 'NO');
+console.log('   DB_NAME:', process.env.DB_NAME || 'NO');
+console.log('   DB_USER:', process.env.DB_USER || 'NO');
+console.log('   DB_PASS:', process.env.DB_PASS ? 'SI (longitud: ' + process.env.DB_PASS.length + ')' : 'NO');
+console.log('   SESSION_SECRET:', process.env.SESSION_SECRET ? 'SI' : 'NO');
+
 const Config = require('./models/Config');
 const express = require('express');
 const session = require('express-session');
@@ -181,14 +190,14 @@ app.post('/login', isNotAuthenticated, validateLoginFields, async (req, res) => 
 
     // Buscar usuario
     const user = await User.findByEmail(email);
-    
+
     if (!user) {
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
 
     // Verificar contraseña
     const isValid = await User.verifyPassword(password, user.password);
-    
+
     if (!isValid) {
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
@@ -206,7 +215,7 @@ app.post('/login', isNotAuthenticated, validateLoginFields, async (req, res) => 
 
     // Redirigir a la página de bienvenida
     res.redirect('/welcome');
-    
+
   } catch (error) {
     console.error('❌ Error en login:', error.message);
     res.redirect('/login?error=Error al iniciar sesión. Intenta de nuevo.');
@@ -513,6 +522,36 @@ app.get('/set-plan/:planId', isAuthenticated, async (req, res) => {
 });
 
 // ==========================================
+// TEMA
+// ==========================================
+
+app.get('/toggle-theme', (req, res) => {
+  const currentTheme = req.query.current || req.cookies?.theme || 'light';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+  res.cookie('theme', newTheme, {
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: true
+  });
+
+  if (req.session && req.session.userId) {
+    User.updateTheme(req.session.userId, newTheme).catch(() => { });
+  }
+
+  console.log(`🌓 Tema: ${currentTheme} → ${newTheme}`);
+
+  const referer = req.get('referer') || '/';
+  try {
+    const url = new URL(referer, `http://${req.get('host')}`);
+    url.searchParams.set('theme', newTheme);
+    res.redirect(url.pathname + url.search);
+  } catch (e) {
+    res.redirect(`/?theme=${newTheme}`);
+  }
+});
+
+
+// ==========================================
 // PANEL DE ADMINISTRACIÓN
 // ==========================================
 
@@ -677,34 +716,7 @@ app.get('/api/projects/selection', isAuthenticated, async (req, res) => {
   }
 });
 
-// ==========================================
-// TEMA
-// ==========================================
 
-app.get('/toggle-theme', (req, res) => {
-  const currentTheme = req.query.current || req.cookies?.theme || 'light';
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-  res.cookie('theme', newTheme, {
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    httpOnly: true
-  });
-
-  if (req.session && req.session.userId) {
-    User.updateTheme(req.session.userId, newTheme).catch(() => {});
-  }
-
-  console.log(`🌓 Tema: ${currentTheme} → ${newTheme}`);
-
-  const referer = req.get('referer') || '/';
-  try {
-    const url = new URL(referer, `http://${req.get('host')}`);
-    url.searchParams.set('theme', newTheme);
-    res.redirect(url.pathname + url.search);
-  } catch (e) {
-    res.redirect(`/?theme=${newTheme}`);
-  }
-});
 
 // ==========================================
 // CONTACTO
@@ -743,7 +755,7 @@ app.get('/api/section/hero', async (req, res) => {
     const githubService = await getGitHubService(req);
     let profile = null;
     if (githubService) {
-      try { profile = await githubService.getProfileStats(); } catch(e) {}
+      try { profile = await githubService.getProfileStats(); } catch (e) { }
     }
     if (!profile) {
       profile = {
@@ -783,7 +795,7 @@ app.get('/api/section/portfolio', async (req, res) => {
     const githubService = await getGitHubService(req);
     let projects = [];
     if (githubService) {
-      try { projects = await githubService.getPortfolioProjects(); } catch(e) {}
+      try { projects = await githubService.getPortfolioProjects(); } catch (e) { }
     }
     if (projects.length === 0) {
       projects = [
@@ -796,7 +808,7 @@ app.get('/api/section/portfolio', async (req, res) => {
     const selectedProjects = res.locals.selectedProjects || [];
     const planService = new PlanService();
     const filteredProjects = planService.filterProjectsByPlan(projects, userPlan.id, selectedProjects);
-    
+
     const html = await engine.render('partials/portfolio.ejs', { projects: filteredProjects, theme: req.theme }, req.templateSets);
     res.send(html);
   } catch (error) {
@@ -810,7 +822,7 @@ app.get('/api/section/tech-stack', async (req, res) => {
     const githubService = await getGitHubService(req);
     let techStack = [];
     if (githubService) {
-      try { techStack = await githubService.getDynamicTechStack(); } catch(e) {}
+      try { techStack = await githubService.getDynamicTechStack(); } catch (e) { }
     }
     if (techStack.length === 0) {
       techStack = [
@@ -1009,7 +1021,16 @@ app.post('/profile/edit', isAuthenticated, async (req, res) => {
   }
 });
 
-
+app.get('/debug-db', (req, res) => {
+  res.json({
+    DB_HOST: process.env.DB_HOST || 'NO CONFIGURADO',
+    DB_PORT: process.env.DB_PORT || 'NO CONFIGURADO',
+    DB_NAME: process.env.DB_NAME || 'NO CONFIGURADO',
+    DB_USER: process.env.DB_USER || 'NO CONFIGURADO',
+    DB_PASS: process.env.DB_PASS ? '✅ Configurado (' + process.env.DB_PASS.substring(0, 3) + '***)' : '❌ NO CONFIGURADO',
+    DB_SSL: process.env.DB_SSL || 'NO CONFIGURADO'
+  });
+});
 
 // ==========================================
 // 404 - SIEMPRE AL FINAL
@@ -1068,6 +1089,23 @@ async function start() {
     console.log(`║   Admin:    http://localhost:${PORT}/admin       ║`);
     console.log(`║   Planes:   http://localhost:${PORT}/plans       ║`);
     console.log(`╚══════════════════════════════════════════════╝\n`);
+  });
+
+  // ==========================================
+  // GRACEFUL SHUTDOWN - Cerrar pool al salir
+  // ==========================================
+  process.on('SIGINT', async () => {
+    console.log('\n🛑 Cerrando servidor...');
+    const { closePool } = require('./database');
+    await closePool();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', async () => {
+    console.log('\n🛑 Cerrando servidor...');
+    const { closePool } = require('./database');
+    await closePool();
+    process.exit(0);
   });
 }
 

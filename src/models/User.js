@@ -1,4 +1,4 @@
-const { getPool } = require('../database');
+const { query, executeQuery, getPool } = require('../database');
 const bcrypt = require('bcryptjs');
 
 class User {
@@ -8,9 +8,7 @@ class User {
   static async findByEmail(email) {
     if (!email) return null;
     try {
-      const pool = getPool();
-      if (!pool) return null;
-      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+      const [rows] = await query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
       return rows[0] || null;
     } catch (error) {
       console.error('findByEmail:', error.message);
@@ -21,9 +19,7 @@ class User {
   static async findByUsername(username) {
     if (!username) return null;
     try {
-      const pool = getPool();
-      if (!pool) return null;
-      const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username.toLowerCase().trim()]);
+      const [rows] = await query('SELECT * FROM users WHERE username = ?', [username.toLowerCase().trim()]);
       return rows[0] || null;
     } catch (error) {
       console.error('findByUsername:', error.message);
@@ -34,9 +30,7 @@ class User {
   static async findById(id) {
     if (!id) return null;
     try {
-      const pool = getPool();
-      if (!pool) return null;
-      const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
+      const [rows] = await query('SELECT * FROM users WHERE id = ?', [id]);
       return rows[0] || null;
     } catch (error) {
       console.error('findById:', error.message);
@@ -46,35 +40,30 @@ class User {
 
   static async findAll({ page = 1, limit = 20, search = '', role = '', plan = '' } = {}) {
     try {
-      const pool = getPool();
-      if (!pool) return { users: [], total: 0, page, totalPages: 0 };
-
-      let query = 'SELECT id, username, email, full_name, role, plan, theme, last_login, created_at FROM users WHERE 1=1';
-      let countQuery = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
+      let sql = 'SELECT id, username, email, full_name, role, plan, theme, last_login, created_at FROM users WHERE 1=1';
+      let countSql = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
       const params = [];
 
       if (search) {
         const s = `%${search}%`;
-        query += ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
-        countQuery += ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
+        const clause = ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
+        sql += clause; countSql += clause;
         params.push(s, s, s);
       }
       if (role) {
-        query += ' AND role = ?';
-        countQuery += ' AND role = ?';
+        sql += ' AND role = ?'; countSql += ' AND role = ?';
         params.push(role);
       }
       if (plan) {
-        query += ' AND plan = ?';
-        countQuery += ' AND plan = ?';
+        sql += ' AND plan = ?'; countSql += ' AND plan = ?';
         params.push(plan);
       }
 
       const offset = (page - 1) * limit;
-      query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+      sql += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
 
-      const [[{ total }]] = await pool.query(countQuery, params);
-      const [users] = await pool.query(query, [...params, limit, offset]);
+      const [[{ total }]] = await query(countSql, [...params]);
+      const [users] = await query(sql, [...params, limit, offset]);
 
       return { users, total, page, totalPages: Math.ceil(total / limit) };
     } catch (error) {
@@ -85,9 +74,7 @@ class User {
 
   static async countByRole() {
     try {
-      const pool = getPool();
-      if (!pool) return {};
-      const [rows] = await pool.query('SELECT role, COUNT(*) as count FROM users GROUP BY role');
+      const [rows] = await query('SELECT role, COUNT(*) as count FROM users GROUP BY role');
       const counts = {};
       rows.forEach(r => { counts[r.role] = r.count; });
       return counts;
@@ -100,10 +87,8 @@ class User {
 
   static async create({ username, email, password, fullName, role = 'user', plan = 'free' }) {
     try {
-      const pool = getPool();
-      if (!pool) throw new Error('BD no disponible');
       const hashedPassword = await bcrypt.hash(password, 10);
-      const [result] = await pool.query(
+      const result = await executeQuery(
         'INSERT INTO users (username, email, password, full_name, role, plan, theme, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
         [username.toLowerCase().trim(), email.toLowerCase().trim(), hashedPassword, fullName || null, role, plan, 'light']
       );
@@ -118,8 +103,6 @@ class User {
 
   static async update(id, data) {
     try {
-      const pool = getPool();
-      if (!pool) return null;
       const allowed = ['username', 'email', 'full_name', 'role', 'plan', 'bio', 'phone', 'company', 'position', 'website', 'location', 'github_username', 'github_token', 'avatar'];
       const updates = [];
       const params = [];
@@ -132,7 +115,7 @@ class User {
       if (updates.length === 0) return this.findById(id);
       updates.push('updated_at = NOW()');
       params.push(id);
-      await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+      await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
       return this.findById(id);
     } catch (error) {
       console.error('update:', error.message);
@@ -142,10 +125,8 @@ class User {
 
   static async updatePassword(id, newPassword) {
     try {
-      const pool = getPool();
-      if (!pool) return false;
       const hashed = await bcrypt.hash(newPassword, 10);
-      await pool.query('UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?', [hashed, id]);
+      await executeQuery('UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?', [hashed, id]);
       return true;
     } catch (error) {
       return false;
@@ -156,61 +137,41 @@ class User {
 
   static async delete(id) {
     try {
-      const pool = getPool();
-      if (!pool) return false;
       const user = await this.findById(id);
       if (!user) return false;
       if (user.role === 'owner') throw new Error('No se puede eliminar al Owner');
-      await pool.query('DELETE FROM users WHERE id = ?', [id]);
+      await executeQuery('DELETE FROM users WHERE id = ?', [id]);
       return true;
     } catch (error) {
       throw error;
     }
   }
 
-  // ========== MÉTODOS EXISTENTES ==========
+  // ========== MÉTODOS RÁPIDOS ==========
 
   static async verifyPassword(plain, hashed) {
     try { return await bcrypt.compare(plain, hashed); } catch { return false; }
   }
 
   static async updateLastLogin(userId) {
-    try {
-      const pool = getPool();
-      if (!pool) return;
-      await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]);
-    } catch (error) {}
+    try { await executeQuery('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]); } catch (error) {}
   }
 
   static async updatePlan(userId, plan) {
-    try {
-      const pool = getPool();
-      if (!pool) return;
-      await pool.query('UPDATE users SET plan = ?, updated_at = NOW() WHERE id = ?', [plan, userId]);
-    } catch (error) {}
+    try { await executeQuery('UPDATE users SET plan = ?, updated_at = NOW() WHERE id = ?', [plan, userId]); } catch (error) {}
   }
 
   static async updateTheme(userId, theme) {
-    try {
-      const pool = getPool();
-      if (!pool) return;
-      await pool.query('UPDATE users SET theme = ?, updated_at = NOW() WHERE id = ?', [theme, userId]);
-    } catch (error) {}
+    try { await executeQuery('UPDATE users SET theme = ?, updated_at = NOW() WHERE id = ?', [theme, userId]); } catch (error) {}
   }
 
   static async updateSelectedProjects(userId, projects) {
-    try {
-      const pool = getPool();
-      if (!pool) return;
-      await pool.query('UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(projects), userId]);
-    } catch (error) {}
+    try { await executeQuery('UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(projects), userId]); } catch (error) {}
   }
 
   static async getSelectedProjects(userId) {
     try {
-      const pool = getPool();
-      if (!pool) return [];
-      const [rows] = await pool.query('SELECT selected_projects FROM users WHERE id = ?', [userId]);
+      const [rows] = await query('SELECT selected_projects FROM users WHERE id = ?', [userId]);
       if (rows[0]?.selected_projects) {
         try { return typeof rows[0].selected_projects === 'string' ? JSON.parse(rows[0].selected_projects) : rows[0].selected_projects; } catch { return []; }
       }
@@ -219,18 +180,12 @@ class User {
   }
 
   static async updateGitHubCredentials(userId, githubUsername, githubToken) {
-    try {
-      const pool = getPool();
-      if (!pool) return;
-      await pool.query('UPDATE users SET github_username = ?, github_token = ?, updated_at = NOW() WHERE id = ?', [githubUsername || null, githubToken || null, userId]);
-    } catch (error) {}
+    try { await executeQuery('UPDATE users SET github_username = ?, github_token = ?, updated_at = NOW() WHERE id = ?', [githubUsername || null, githubToken || null, userId]); } catch (error) {}
   }
 
   static async getGitHubCredentials(userId) {
     try {
-      const pool = getPool();
-      if (!pool) return null;
-      const [rows] = await pool.query('SELECT github_username, github_token FROM users WHERE id = ?', [userId]);
+      const [rows] = await query('SELECT github_username, github_token FROM users WHERE id = ?', [userId]);
       if (rows[0]?.github_username && rows[0]?.github_token) return { username: rows[0].github_username, token: rows[0].github_token };
       return null;
     } catch (error) { return null; }

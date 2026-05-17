@@ -1,125 +1,133 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
 
-// Configuración de conexión (sin base de datos específica para poder crearla)
-const initConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-};
-
-const dbName = process.env.DB_NAME || 'devcraft_studio';
-
-// Pool con la base de datos ya seleccionada
 let pool = null;
 
 /**
- * Inicializa la base de datos creándola si no existe
+ * Inicializa el pool de conexiones a MySQL
  */
 async function initDatabase() {
-  let connection;
   try {
-    // 1. Conectar sin especificar base de datos
-    console.log(`🔌 Conectando a MariaDB en ${initConfig.host}:${initConfig.port}...`);
-    connection = await mysql.createConnection(initConfig);
-    console.log('✅ Conexión a MariaDB establecida');
+    pool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      database: process.env.DB_NAME || 'devcraft',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASS || '',
+      waitForConnections: true,
+      connectionLimit: 5, // Límite de Vercel
+      queueLimit: 0,
+      // Tiempo máximo de inactividad antes de cerrar
+      idleTimeout: 10000, // 10 segundos
+      // Tiempo máximo de conexión
+      connectTimeout: 10000,
+      // Cerrar conexiones inactivas
+      enableKeepAlive: false
+    });
 
-    // 2. Crear base de datos si no existe
-    console.log(`📦 Verificando base de datos "${dbName}"...`);
-    await connection.query(
-      `CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
-    );
-    console.log(`✅ Base de datos "${dbName}" lista`);
-
-    // 3. Usar la base de datos
-    await connection.query(`USE \`${dbName}\``);
-
-    // 4. Crear tablas si no existen
-    console.log('📋 Creando tablas...');
-
-    // Tabla de usuarios
+    // Probar conexión y liberar inmediatamente
+    const connection = await pool.getConnection();
+    console.log('✅ Conectado a MySQL');
+    
+    // Crear tablas si no existen
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
+        username VARCHAR(50) NOT NULL UNIQUE,
+        email VARCHAR(100) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         full_name VARCHAR(100),
+        role VARCHAR(20) DEFAULT 'user',
         plan VARCHAR(20) DEFAULT 'free',
-        selected_projects JSON DEFAULT NULL,
         theme VARCHAR(10) DEFAULT 'light',
-        avatar_url VARCHAR(255) DEFAULT NULL,
-        github_username VARCHAR(50) DEFAULT NULL,
+        avatar VARCHAR(255) DEFAULT NULL,
+        bio TEXT DEFAULT NULL,
+        phone VARCHAR(20) DEFAULT NULL,
+        company VARCHAR(100) DEFAULT NULL,
+        position VARCHAR(100) DEFAULT NULL,
+        website VARCHAR(255) DEFAULT NULL,
+        location VARCHAR(255) DEFAULT NULL,
+        github_username VARCHAR(100) DEFAULT NULL,
         github_token VARCHAR(255) DEFAULT NULL,
-        is_active BOOLEAN DEFAULT TRUE,
-        last_login TIMESTAMP NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        selected_projects JSON DEFAULT NULL,
+        last_login DATETIME DEFAULT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_email (email),
-        INDEX idx_username (username),
-        INDEX idx_plan (plan)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        INDEX idx_username (username)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
-    console.log('  ✅ Tabla "users" lista');
-
-    // Tabla de sesiones
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS sessions (
-        session_id VARCHAR(128) PRIMARY KEY,
-        expires INT UNSIGNED NOT NULL,
-        data TEXT
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    console.log('  ✅ Tabla "sessions" lista');
-    // Tabla de configuración por usuario (NUEVA)
-    await connection.query(`
-      CREATE TABLE IF NOT EXISTS config (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        config_key VARCHAR(100) NOT NULL,
-        config_value TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_user_config (user_id, config_key),
-        INDEX idx_user_id (user_id),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-    `);
-    console.log('  ✅ Tabla "config" lista');
-
-
-    console.log('✅ Base de datos inicializada correctamente\n');
-
-    // 5. Cerrar conexión temporal
-    await connection.end();
-
-    // 6. Crear el pool con la base de datos seleccionada
-    pool = mysql.createPool({
-      ...initConfig,
-      database: dbName
-    });
-
+    
+    // Liberar conexión inmediatamente
+    connection.release();
+    console.log('✅ Tablas verificadas, conexión liberada');
     return true;
   } catch (error) {
-    console.error('\n❌ Error al inicializar la base de datos:');
-    console.error(`   ${error.message}\n`);
-    console.error('   Verifica que:');
-    console.error('   1. MariaDB esté instalado y corriendo');
-    console.error('   2. Las credenciales en .env sean correctas');
-    console.error('   3. El puerto 3306 esté accesible\n');
+    console.error('❌ Error de conexión a MySQL:', error.message);
+    pool = null;
     return false;
   }
 }
 
 /**
- * Obtiene el pool de conexiones (inicializado o null)
+ * Obtener el pool de conexiones
  */
 function getPool() {
   return pool;
 }
 
-module.exports = { getPool, initDatabase };
+/**
+ * 🆕 Ejecutar query y liberar conexión automáticamente
+ */
+async function executeQuery(sql, params = []) {
+  const pool = getPool();
+  if (!pool) throw new Error('Base de datos no disponible');
+  
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [result] = await connection.query(sql, params);
+    return result;
+  } catch (error) {
+    throw error;
+  } finally {
+    // Liberar conexión siempre
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+/**
+ * 🆕 Ejecutar query que devuelve filas
+ */
+async function query(sql, params = []) {
+  const pool = getPool();
+  if (!pool) return [[], []];
+  
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [rows, fields] = await connection.query(sql, params);
+    return [rows, fields];
+  } catch (error) {
+    console.error('❌ Error en query:', error.message);
+    throw error;
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+}
+
+/**
+ * 🆕 Cerrar el pool completamente (para graceful shutdown)
+ */
+async function closePool() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    console.log('🔌 Pool de conexiones cerrado');
+  }
+}
+
+module.exports = { getPool, initDatabase, executeQuery, query, closePool };
