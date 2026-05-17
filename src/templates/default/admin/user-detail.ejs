@@ -1,0 +1,56 @@
+<div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+  
+  <div style="margin-bottom: 25px;">
+    <a href="/admin/users" style="color: var(--text-secondary); text-decoration: none;">← Volver a usuarios</a>
+  </div>
+
+  <% if (typeof detailUser !== 'undefined') { %>
+  <div style="background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    
+    <div style="background: var(--gradient); padding: 40px; text-align: center; color: white;">
+      <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 2rem;">
+        <%= detailUser.avatar || '👤' %>
+      </div>
+      <h1 style="font-size: 1.8rem; margin-bottom: 5px;"><%= detailUser.full_name || detailUser.username %></h1>
+      <p style="opacity: 0.9;">@<%= detailUser.username %></p>
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+        <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem;">
+          <%= detailUser.role === 'owner' ? '👑 Owner' : (detailUser.role === 'admin' ? '⚙️ Admin' : '👤 Usuario') %>
+        </span>
+        <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem;">
+          📦 <%= detailUser.plan || 'free' %>
+        </span>
+      </div>
+    </div>
+
+    <div style="padding: 30px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        <div><span style="font-size: 0.75rem; color: var(--text-secondary);">Email</span><div style="color: var(--text);"><%= detailUser.email %></div></div>
+        <% if (detailUser.phone) { %><div><span style="font-size: 0.75rem; color: var(--text-secondary);">Teléfono</span><div style="color: var(--text);"><%= detailUser.phone %></div></div><% } %>
+        <% if (detailUser.company) { %><div><span style="font-size: 0.75rem; color: var(--text-secondary);">Empresa</span><div style="color: var(--text);"><%= detailUser.company %></div></div><% } %>
+        <% if (detailUser.location) { %><div><span style="font-size: 0.75rem; color: var(--text-secondary);">Ubicación</span><div style="color: var(--text);"><%= detailUser.location %></div></div><% } %>
+        <div><span style="font-size: 0.75rem; color: var(--text-secondary);">Registrado</span><div style="color: var(--text);"><%= detailUser.created_at ? new Date(detailUser.created_at).toLocaleDateString('es-CL') : 'N/A' %></div></div>
+        <div><span style="font-size: 0.75rem; color: var(--text-secondary);">Último login</span><div style="color: var(--text);"><%= detailUser.last_login ? new Date(detailUser.last_login).toLocaleString('es-CL') : 'Nunca' %></div></div>
+      </div>
+
+      <% if (detailUser.bio) { %>
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
+          <h4 style="color: var(--text); margin-bottom: 10px;">📝 Bio</h4>
+          <p style="color: var(--text-secondary);"><%= detailUser.bio %></p>
+        </div>
+      <% } %>
+
+      <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap;">
+        <% if (user && (user.role === 'owner' || user.id === detailUser.id)) { %>
+          <a href="/admin/users/<%= detailUser.id %>/edit" style="background: var(--accent); color: white; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 500;">✏️ Editar</a>
+        <% } %>
+        <% if (user && user.role === 'owner' && detailUser.role !== 'owner') { %>
+          <form method="POST" action="/admin/users/<%= detailUser.id %>/delete" onsubmit="return confirm('¿Eliminar a <%= detailUser.username %>?')">
+            <button type="submit" style="background: #ff6b6b; color: white; padding: 10px 20px; border: none; border-radius: 10px; font-weight: 500; cursor: pointer;">🗑️ Eliminar</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <% } %>
+</div>

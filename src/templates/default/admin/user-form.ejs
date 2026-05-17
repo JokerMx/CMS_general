@@ -1,0 +1,81 @@
+<div style="max-width: 700px; margin: 0 auto; padding: 40px 20px;">
+  
+  <div style="margin-bottom: 30px;">
+    <a href="/admin/users" style="color: var(--text-secondary); text-decoration: none;">← Volver a usuarios</a>
+    <h1 style="font-size: 2rem; color: var(--text); margin-top: 10px;">
+      <%= typeof isEdit !== 'undefined' && isEdit ? '✏️ Editar Usuario' : '➕ Crear Usuario' %>
+    </h1>
+  </div>
+
+  <div style="background: var(--card-bg); border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    
+    <form method="POST" action="<%= typeof isEdit !== 'undefined' && isEdit ? `/admin/users/${formUser.id}/edit` : '/admin/users/create' %>">
+      
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: var(--text); margin-bottom: 15px;">📋 Datos básicos</h3>
+        <div style="display: grid; gap: 15px;">
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Usuario *</label>
+            <input type="text" name="username" value="<%= typeof formUser !== 'undefined' ? formUser.username || '' : '' %>" required
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Email *</label>
+            <input type="email" name="email" value="<%= typeof formUser !== 'undefined' ? formUser.email || '' : '' %>" required
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Nombre completo</label>
+            <input type="text" name="fullName" value="<%= typeof formUser !== 'undefined' ? formUser.full_name || '' : '' %>"
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: var(--text); margin-bottom: 15px;">🔒 <%= typeof isEdit !== 'undefined' && isEdit ? 'Cambiar contraseña (dejar vacío para mantener)' : 'Contraseña' %></h3>
+        <div>
+          <% if (typeof isEdit === 'undefined' || !isEdit) { %>
+            <input type="password" name="password" placeholder="Mínimo 6 caracteres" required
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          <% } else { %>
+            <input type="password" name="newPassword" placeholder="Nueva contraseña (opcional)"
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          <% } %>
+        </div>
+      </div>
+
+      <% if (typeof user !== 'undefined' && user && user.role === 'owner') { %>
+        <div style="margin-bottom: 30px;">
+          <h3 style="color: var(--text); margin-bottom: 15px;">🛡️ Permisos</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Rol</label>
+              <select name="role" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+                <option value="user" <%= formUser && formUser.role === 'user' ? 'selected' : '' %>>Usuario</option>
+                <option value="admin" <%= formUser && formUser.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                <option value="owner" <%= formUser && formUser.role === 'owner' ? 'selected' : '' %>>Owner</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Plan</label>
+              <select name="plan" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+                <option value="free" <%= formUser && formUser.plan === 'free' ? 'selected' : '' %>>Gratis</option>
+                <option value="medium" <%= formUser && formUser.plan === 'medium' ? 'selected' : '' %>>Medio</option>
+                <option value="premium" <%= formUser && formUser.plan === 'premium' ? 'selected' : '' %>>Premium</option>
+                <option value="platinum" <%= formUser && formUser.plan === 'platinum' ? 'selected' : '' %>>Platinum</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <a href="/admin/users" style="background: var(--badge-bg); color: var(--text); padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 500;">Cancelar</a>
+        <button type="submit" style="background: var(--gradient); color: white; padding: 12px 30px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">
+          <%= typeof isEdit !== 'undefined' && isEdit ? 'Guardar cambios' : 'Crear usuario' %>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

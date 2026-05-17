@@ -9,7 +9,7 @@ const { resolveTemplateContext } = require('./contextResolver');
 const GitHubService = require('./githubService');
 const { PlanService } = require('./planService');
 const { initDatabase } = require('./database');
-const { loadUser, isAuthenticated, isNotAuthenticated } = require('./middleware/auth');
+const { loadUser, isAuthenticated, isNotAuthenticated, isAdmin, isOwner, canEditUser } = require('./middleware/auth');
 const User = require('./models/User');
 
 const app = express();
@@ -732,6 +732,284 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// ==========================================
+// API PARA SPA - Cargar secciones parciales
+// ==========================================
+
+// Hero section
+app.get('/api/section/hero', async (req, res) => {
+  try {
+    const githubService = await getGitHubService(req);
+    let profile = null;
+    if (githubService) {
+      try { profile = await githubService.getProfileStats(); } catch(e) {}
+    }
+    if (!profile) {
+      profile = {
+        username: process.env.GITHUB_USERNAME || 'devcraft',
+        name: 'DevCraft Studio',
+        totalRepos: 0, totalStars: 0, followers: 0
+      };
+    }
+    const html = await engine.render('partials/hero.ejs', { profile, theme: req.theme }, req.templateSets);
+    res.send(html);
+  } catch (error) {
+    res.status(500).send(`<p>Error: ${error.message}</p>`);
+  }
+});
+
+// Services section
+app.get('/api/section/services', async (req, res) => {
+  try {
+    const services = [
+      { icon: '🖥️', title: 'Desarrollo Web', description: 'Aplicaciones web modernas con React, Vue, Angular y Node.js.', features: ['SPA/PWA', 'E-commerce', 'Dashboards'] },
+      { icon: '📱', title: 'Apps Móviles', description: 'Aplicaciones nativas e híbridas para iOS y Android.', features: ['iOS & Android', 'UI/UX nativo', 'Offline-first'] },
+      { icon: '☁️', title: 'Cloud & DevOps', description: 'Arquitecturas en AWS, Azure y GCP con CI/CD.', features: ['Docker/K8s', 'Serverless', 'Monitoreo'] },
+      { icon: '🤖', title: 'IA & Automatización', description: 'Integración de modelos de IA y automatización.', features: ['ML/DL', 'NLP', 'RPA'] },
+      { icon: '🔒', title: 'Ciberseguridad', description: 'Auditorías de seguridad y hardening.', features: ['Pentesting', 'OAuth/JWT', 'GDPR'] },
+      { icon: '🎯', title: 'Consultoría Tech', description: 'Asesoría en arquitectura de software y migraciones.', features: ['Auditorías', 'Roadmaps', 'MVP'] }
+    ];
+    const html = await engine.render('partials/services-3d.ejs', { services, theme: req.theme }, req.templateSets);
+    res.send(html);
+  } catch (error) {
+    res.status(500).send(`<p>Error: ${error.message}</p>`);
+  }
+});
+
+// Portfolio section
+app.get('/api/section/portfolio', async (req, res) => {
+  try {
+    const githubService = await getGitHubService(req);
+    let projects = [];
+    if (githubService) {
+      try { projects = await githubService.getPortfolioProjects(); } catch(e) {}
+    }
+    if (projects.length === 0) {
+      projects = [
+        { id: 1, name: 'ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }] },
+        { id: 2, name: 'react-dashboard', description: 'Dashboard con React y TypeScript', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }] },
+        { id: 3, name: 'ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] }
+      ];
+    }
+    const userPlan = res.locals.userPlan || { id: 'free', maxProjects: 2 };
+    const selectedProjects = res.locals.selectedProjects || [];
+    const planService = new PlanService();
+    const filteredProjects = planService.filterProjectsByPlan(projects, userPlan.id, selectedProjects);
+    
+    const html = await engine.render('partials/portfolio.ejs', { projects: filteredProjects, theme: req.theme }, req.templateSets);
+    res.send(html);
+  } catch (error) {
+    res.status(500).send(`<p>Error: ${error.message}</p>`);
+  }
+});
+
+// Tech Stack section
+app.get('/api/section/tech-stack', async (req, res) => {
+  try {
+    const githubService = await getGitHubService(req);
+    let techStack = [];
+    if (githubService) {
+      try { techStack = await githubService.getDynamicTechStack(); } catch(e) {}
+    }
+    if (techStack.length === 0) {
+      techStack = [
+        { name: 'JavaScript', level: 95, color: '#f7df1e', icon: '📜', count: 15, stars: 120 },
+        { name: 'TypeScript', level: 88, color: '#3178c6', icon: '🔷', count: 10, stars: 85 },
+        { name: 'React', level: 90, color: '#61dafb', icon: '⚛️', count: 8, stars: 95 },
+        { name: 'Node.js', level: 85, color: '#339933', icon: '💚', count: 12, stars: 70 }
+      ];
+    }
+    const html = await engine.render('partials/tech-stack.ejs', { techStack, theme: req.theme }, req.templateSets);
+    res.send(html);
+  } catch (error) {
+    res.status(500).send(`<p>Error: ${error.message}</p>`);
+  }
+});
+
+// Contact section
+app.get('/api/section/contact', async (req, res) => {
+  try {
+    const html = await engine.render('partials/contact.ejs', { theme: req.theme }, req.templateSets);
+    res.send(html);
+  } catch (error) {
+    res.status(500).send(`<p>Error: ${error.message}</p>`);
+  }
+});
+
+// ==========================================
+// GESTIÓN DE USUARIOS (ADMIN)
+// ==========================================
+
+// Lista de usuarios
+app.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const { users, total, totalPages } = await User.findAll({
+      page, limit: 15,
+      search: req.query.search || '',
+      role: req.query.role || '',
+      plan: req.query.plan || ''
+    });
+    const roleCounts = await User.countByRole();
+
+    const data = {
+      title: 'Gestión de Usuarios | DevCraft Studio',
+      theme: req.theme, currentYear: new Date().getFullYear(),
+      user: res.locals.user, userPlan: res.locals.userPlan,
+      users, pagination: { page, total, totalPages, search: req.query.search || '', role: req.query.role || '', plan: req.query.plan || '' },
+      roleCounts
+    };
+
+    const bodyHtml = await engine.render('admin/users.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) {
+    res.status(500).send(`<h1>Error</h1><p>${error.message}</p>`);
+  }
+});
+
+// Formulario crear usuario
+app.get('/admin/users/create', isAuthenticated, isOwner, async (req, res) => {
+  const data = {
+    title: 'Crear Usuario | DevCraft Studio',
+    theme: req.theme, currentYear: new Date().getFullYear(),
+    user: res.locals.user, userPlan: res.locals.userPlan,
+    formUser: {}, errors: {}, isEdit: false
+  };
+  const bodyHtml = await engine.render('admin/user-form.ejs', data, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  res.send(fullHtml);
+});
+
+// Procesar crear usuario
+app.post('/admin/users/create', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    const { username, email, password, fullName, role, plan } = req.body;
+    const errors = {};
+    if (!username || username.length < 3) errors.username = 'Mínimo 3 caracteres';
+    if (!email) errors.email = 'Email requerido';
+    if (!password || password.length < 6) errors.password = 'Mínimo 6 caracteres';
+    if (!errors.email && await User.findByEmail(email)) errors.email = 'Email ya registrado';
+    if (!errors.username && await User.findByUsername(username)) errors.username = 'Usuario ya existe';
+
+    if (Object.keys(errors).length > 0) {
+      const data = {
+        title: 'Crear Usuario', theme: req.theme, currentYear: new Date().getFullYear(),
+        user: res.locals.user, userPlan: res.locals.userPlan,
+        formUser: { username, email, fullName, role: role || 'user', plan: plan || 'free' },
+        errors, isEdit: false
+      };
+      const bodyHtml = await engine.render('admin/user-form.ejs', data, req.templateSets);
+      const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+      return res.send(fullHtml);
+    }
+
+    await User.create({ username, email, password, fullName, role: role || 'user', plan: plan || 'free' });
+    res.redirect('/admin/users?success=Usuario creado');
+  } catch (error) {
+    res.redirect('/admin/users?error=Error al crear');
+  }
+});
+
+// Editar usuario
+app.get('/admin/users/:id/edit', isAuthenticated, canEditUser, async (req, res) => {
+  const formUser = await User.findById(req.params.id);
+  if (!formUser) return res.redirect('/admin/users?error=No encontrado');
+  const data = {
+    title: 'Editar Usuario', theme: req.theme, currentYear: new Date().getFullYear(),
+    user: res.locals.user, userPlan: res.locals.userPlan,
+    formUser, errors: {}, isEdit: true
+  };
+  const bodyHtml = await engine.render('admin/user-form.ejs', data, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  res.send(fullHtml);
+});
+
+// Procesar editar usuario
+app.post('/admin/users/:id/edit', isAuthenticated, canEditUser, async (req, res) => {
+  try {
+    const { username, email, fullName, role, plan, bio, phone, company, position, website, location, github_username, newPassword } = req.body;
+    const updateData = { username, email, full_name: fullName, bio, phone, company, position, website, location, github_username };
+    if (res.locals.user.role === 'owner') { updateData.role = role; updateData.plan = plan; }
+    await User.update(req.params.id, updateData);
+    if (newPassword && newPassword.length >= 6) await User.updatePassword(req.params.id, newPassword);
+    res.redirect('/admin/users?success=Usuario actualizado');
+  } catch (error) {
+    res.redirect(`/admin/users/${req.params.id}/edit?error=Error`);
+  }
+});
+
+// Ver detalle
+app.get('/admin/users/:id', isAuthenticated, isAdmin, async (req, res) => {
+  const detailUser = await User.findById(req.params.id);
+  if (!detailUser) return res.redirect('/admin/users');
+  const data = {
+    title: `${detailUser.username} | DevCraft Studio`,
+    theme: req.theme, currentYear: new Date().getFullYear(),
+    user: res.locals.user, userPlan: res.locals.userPlan, detailUser
+  };
+  const bodyHtml = await engine.render('admin/user-detail.ejs', data, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  res.send(fullHtml);
+});
+
+// Eliminar usuario
+app.post('/admin/users/:id/delete', isAuthenticated, isOwner, async (req, res) => {
+  try {
+    await User.delete(req.params.id);
+    res.redirect('/admin/users?success=Usuario eliminado');
+  } catch (error) {
+    res.redirect(`/admin/users?error=${encodeURIComponent(error.message)}`);
+  }
+});
+
+// ==========================================
+// PERFIL PROPIO
+// ==========================================
+
+app.get('/profile', isAuthenticated, async (req, res) => {
+  const profileUser = await User.findById(req.session.userId);
+  const data = {
+    title: 'Mi Perfil | DevCraft Studio',
+    theme: req.theme, currentYear: new Date().getFullYear(),
+    user: res.locals.user, userPlan: res.locals.userPlan, profileUser
+  };
+  const bodyHtml = await engine.render('profile.ejs', data, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  res.send(fullHtml);
+});
+
+app.get('/profile/edit', isAuthenticated, async (req, res) => {
+  const formUser = await User.findById(req.session.userId);
+  const data = {
+    title: 'Editar Perfil', theme: req.theme, currentYear: new Date().getFullYear(),
+    user: res.locals.user, userPlan: res.locals.userPlan,
+    formUser, errors: {}, isOwnProfile: true
+  };
+  const bodyHtml = await engine.render('edit-profile.ejs', data, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  res.send(fullHtml);
+});
+
+app.post('/profile/edit', isAuthenticated, async (req, res) => {
+  try {
+    const { fullName, bio, phone, company, position, website, location, github_username, github_token, currentPassword, newPassword } = req.body;
+    const updateData = { full_name: fullName, bio, phone, company, position, website, location, github_username };
+    if (github_token) updateData.github_token = github_token;
+    await User.update(req.session.userId, updateData);
+    if (currentPassword && newPassword && newPassword.length >= 6) {
+      const user = await User.findById(req.session.userId);
+      const valid = await User.verifyPassword(currentPassword, user.password);
+      if (valid) await User.updatePassword(req.session.userId, newPassword);
+    }
+    res.redirect('/profile?success=Perfil actualizado');
+  } catch (error) {
+    res.redirect('/profile/edit?error=Error');
+  }
+});
+
+
 
 // ==========================================
 // 404 - SIEMPRE AL FINAL

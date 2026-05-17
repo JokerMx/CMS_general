@@ -1,0 +1,69 @@
+<div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+  
+  <div style="margin-bottom: 30px;">
+    <a href="/profile" style="color: var(--text-secondary); text-decoration: none;">← Volver a mi perfil</a>
+    <h1 style="font-size: 2rem; color: var(--text); margin-top: 10px;">✏️ Editar mi perfil</h1>
+  </div>
+
+  <div style="background: var(--card-bg); border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    
+    <form method="POST" action="/profile/edit">
+      
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: var(--text); margin-bottom: 15px;">📋 Información personal</h3>
+        <div style="display: grid; gap: 15px;">
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Nombre completo</label>
+            <input type="text" name="fullName" value="<%= typeof formUser !== 'undefined' ? formUser.full_name || '' : '' %>"
+                   style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Bio</label>
+            <textarea name="bio" rows="3" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); resize: vertical;"><%= typeof formUser !== 'undefined' ? formUser.bio || '' : '' %></textarea>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Teléfono</label>
+              <input type="text" name="phone" value="<%= typeof formUser !== 'undefined' ? formUser.phone || '' : '' %>" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+            </div>
+            <div>
+              <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Empresa</label>
+              <input type="text" name="company" value="<%= typeof formUser !== 'undefined' ? formUser.company || '' : '' %>" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+            </div>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Ubicación</label>
+            <input type="text" name="location" value="<%= typeof formUser !== 'undefined' ? formUser.location || '' : '' %>" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: var(--text); margin-bottom: 15px;">🐙 GitHub</h3>
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Usuario de GitHub</label>
+          <input type="text" name="github_username" value="<%= typeof formUser !== 'undefined' ? formUser.github_username || '' : '' %>" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+        </div>
+      </div>
+
+      <div style="margin-bottom: 30px;">
+        <h3 style="color: var(--text); margin-bottom: 15px;">🔒 Cambiar contraseña</h3>
+        <div style="display: grid; gap: 15px;">
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Contraseña actual</label>
+            <input type="password" name="currentPassword" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 5px; font-weight: 500; color: var(--text);">Nueva contraseña</label>
+            <input type="password" name="newPassword" placeholder="Mínimo 6 caracteres" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <a href="/profile" style="background: var(--badge-bg); color: var(--text); padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 500;">Cancelar</a>
+        <button type="submit" style="background: var(--gradient); color: white; padding: 12px 30px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>

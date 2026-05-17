@@ -1,0 +1,119 @@
+<div style="max-width: 1200px; margin: 0 auto; padding: 40px 20px;">
+  
+  <!-- Cabecera -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;">
+    <div>
+      <h1 style="font-size: 2rem; color: var(--text); margin-bottom: 5px;">👥 Gestión de Usuarios</h1>
+      <p style="color: var(--text-secondary);">
+        <% if (typeof roleCounts !== 'undefined') { %>
+          <%= roleCounts.owner || 0 %> Owners · 
+          <%= roleCounts.admin || 0 %> Admins · 
+          <%= (roleCounts.user || 0) %> Usuarios
+        <% } %>
+      </p>
+    </div>
+    <% if (user && user.role === 'owner') { %>
+      <a href="/admin/users/create" style="background: var(--gradient); color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 600; transition: transform 0.2s; display: inline-block;"
+         onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+        + Nuevo Usuario
+      </a>
+    <% } %>
+  </div>
+
+  <!-- Filtros -->
+  <form method="GET" action="/admin/users" style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap;">
+    <input type="text" name="search" value="<%= typeof pagination !== 'undefined' ? pagination.search : '' %>" placeholder="Buscar usuario..." 
+           style="flex: 1; min-width: 200px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+    <select name="role" style="padding: 10px 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text);">
+      <option value="">Todos los roles</option>
+      <option value="owner" <%= pagination && pagination.role === 'owner' ? 'selected' : '' %>>Owner</option>
+      <option value="admin" <%= pagination && pagination.role === 'admin' ? 'selected' : '' %>>Admin</option>
+      <option value="user" <%= pagination && pagination.role === 'user' ? 'selected' : '' %>>Usuario</option>
+    </select>
+    <button type="submit" style="background: var(--badge-bg); color: var(--text); padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-weight: 500;">
+      🔍 Filtrar
+    </button>
+  </form>
+
+  <!-- Tabla -->
+  <div style="background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: var(--badge-bg);">
+            <th style="padding: 15px; text-align: left; color: var(--text); font-weight: 600;">Usuario</th>
+            <th style="padding: 15px; text-align: left; color: var(--text); font-weight: 600;">Email</th>
+            <th style="padding: 15px; text-align: center; color: var(--text); font-weight: 600;">Rol</th>
+            <th style="padding: 15px; text-align: center; color: var(--text); font-weight: 600;">Plan</th>
+            <th style="padding: 15px; text-align: center; color: var(--text); font-weight: 600;">Último login</th>
+            <th style="padding: 15px; text-align: center; color: var(--text); font-weight: 600;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (typeof users !== 'undefined' && users.length > 0) { %>
+            <% users.forEach(u => { %>
+              <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;"
+                  onmouseover="this.style.background='var(--badge-bg)'"
+                  onmouseout="this.style.background='transparent'">
+                <td style="padding: 15px;">
+                  <a href="/admin/users/<%= u.id %>" style="color: var(--accent); text-decoration: none; font-weight: 600;">
+                    <%= u.username %>
+                  </a>
+                  <% if (u.full_name) { %>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);"><%= u.full_name %></div>
+                  <% } %>
+                </td>
+                <td style="padding: 15px; color: var(--text-secondary);"><%= u.email %></td>
+                <td style="padding: 15px; text-align: center;">
+                  <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+                    <% if (u.role === 'owner') { %>background: #ffd70020; color: #ffd700;<% } 
+                    else if (u.role === 'admin') { %>background: #6c5ce720; color: #6c5ce7;<% } 
+                    else { %>background: var(--badge-bg); color: var(--text-secondary);<% } %>">
+                    <%= u.role === 'owner' ? '👑 Owner' : (u.role === 'admin' ? '⚙️ Admin' : '👤 Usuario') %>
+                  </span>
+                </td>
+                <td style="padding: 15px; text-align: center;">
+                  <span style="color: var(--accent); font-weight: 500;"><%= u.plan || 'free' %></span>
+                </td>
+                <td style="padding: 15px; text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+                  <%= u.last_login ? new Date(u.last_login).toLocaleDateString('es-CL') : 'Nunca' %>
+                </td>
+                <td style="padding: 15px; text-align: center;">
+                  <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <a href="/admin/users/<%= u.id %>" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">Ver</a>
+                    <% if (user && (user.role === 'owner' || user.id === u.id)) { %>
+                      <a href="/admin/users/<%= u.id %>/edit" style="color: #ffd700; text-decoration: none; font-size: 0.85rem;">Editar</a>
+                    <% } %>
+                    <% if (user && user.role === 'owner' && u.role !== 'owner') { %>
+                      <form method="POST" action="/admin/users/<%= u.id %>/delete" style="display: inline;" onsubmit="return confirm('¿Eliminar a <%= u.username %>?')">
+                        <button type="submit" style="background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 0.85rem; text-decoration: underline;">Eliminar</button>
+                      </form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="6" style="padding: 40px; text-align: center; color: var(--text-secondary);">No se encontraron usuarios.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <% if (typeof pagination !== 'undefined' && pagination.totalPages > 1) { %>
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 25px;">
+      <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+        <a href="/admin/users?page=<%= i %>&search=<%= pagination.search %>&role=<%= pagination.role %>" 
+           style="padding: 8px 14px; border-radius: 8px; text-decoration: none; font-weight: 500;
+           <% if (i === pagination.page) { %>background: var(--accent); color: white;<% } 
+           else { %>background: var(--badge-bg); color: var(--text);<% } %>">
+          <%= i %>
+        </a>
+      <% } %>
+    </div>
+  <% } %>
+</div>

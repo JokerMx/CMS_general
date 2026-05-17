@@ -2,218 +2,238 @@ const { getPool } = require('../database');
 const bcrypt = require('bcryptjs');
 
 class User {
-  /**
-   * Buscar usuario por email
-   */
-  static async findByEmail(email) {
-    if (!email || typeof email !== 'string') {
-      console.error('❌ findByEmail: email inválido o vacío:', email);
-      return null;
-    }
 
+  // ========== BÚSQUEDAS ==========
+
+  static async findByEmail(email) {
+    if (!email) return null;
     try {
       const pool = getPool();
-      if (!pool) {
-        console.error('❌ findByEmail: pool no disponible');
-        return null;
+      if (!pool) return null;
+      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+      return rows[0] || null;
+    } catch (error) {
+      console.error('findByEmail:', error.message);
+      return null;
+    }
+  }
+
+  static async findByUsername(username) {
+    if (!username) return null;
+    try {
+      const pool = getPool();
+      if (!pool) return null;
+      const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username.toLowerCase().trim()]);
+      return rows[0] || null;
+    } catch (error) {
+      console.error('findByUsername:', error.message);
+      return null;
+    }
+  }
+
+  static async findById(id) {
+    if (!id) return null;
+    try {
+      const pool = getPool();
+      if (!pool) return null;
+      const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
+      return rows[0] || null;
+    } catch (error) {
+      console.error('findById:', error.message);
+      return null;
+    }
+  }
+
+  static async findAll({ page = 1, limit = 20, search = '', role = '', plan = '' } = {}) {
+    try {
+      const pool = getPool();
+      if (!pool) return { users: [], total: 0, page, totalPages: 0 };
+
+      let query = 'SELECT id, username, email, full_name, role, plan, theme, last_login, created_at FROM users WHERE 1=1';
+      let countQuery = 'SELECT COUNT(*) as total FROM users WHERE 1=1';
+      const params = [];
+
+      if (search) {
+        const s = `%${search}%`;
+        query += ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
+        countQuery += ' AND (username LIKE ? OR email LIKE ? OR full_name LIKE ?)';
+        params.push(s, s, s);
+      }
+      if (role) {
+        query += ' AND role = ?';
+        countQuery += ' AND role = ?';
+        params.push(role);
+      }
+      if (plan) {
+        query += ' AND plan = ?';
+        countQuery += ' AND plan = ?';
+        params.push(plan);
       }
 
-      // ✅ MySQL usa ? en lugar de $1
-      const [rows] = await pool.query(
-        'SELECT * FROM users WHERE email = ?',
-        [email.toLowerCase().trim()]
-      );
-      return rows[0] || null;
+      const offset = (page - 1) * limit;
+      query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+
+      const [[{ total }]] = await pool.query(countQuery, params);
+      const [users] = await pool.query(query, [...params, limit, offset]);
+
+      return { users, total, page, totalPages: Math.ceil(total / limit) };
     } catch (error) {
-      console.error('❌ Error en findByEmail:', error.message);
-      return null;
+      console.error('findAll:', error.message);
+      return { users: [], total: 0, page, totalPages: 0 };
     }
   }
 
-  /**
-   * Buscar usuario por username
-   */
-  static async findByUsername(username) {
-    if (!username || typeof username !== 'string') {
-      console.error('❌ findByUsername: username inválido:', username);
-      return null;
-    }
-
+  static async countByRole() {
     try {
       const pool = getPool();
-      if (!pool) return null;
-
-      const [rows] = await pool.query(
-        'SELECT * FROM users WHERE username = ?',
-        [username.toLowerCase().trim()]
-      );
-      return rows[0] || null;
+      if (!pool) return {};
+      const [rows] = await pool.query('SELECT role, COUNT(*) as count FROM users GROUP BY role');
+      const counts = {};
+      rows.forEach(r => { counts[r.role] = r.count; });
+      return counts;
     } catch (error) {
-      console.error('❌ Error en findByUsername:', error.message);
-      return null;
+      return {};
     }
   }
 
-  /**
-   * Buscar usuario por ID
-   */
-  static async findById(id) {
-    if (!id) {
-      console.error('❌ findById: id inválido:', id);
-      return null;
-    }
+  // ========== CREAR ==========
 
+  static async create({ username, email, password, fullName, role = 'user', plan = 'free' }) {
     try {
       const pool = getPool();
-      if (!pool) return null;
-
-      const [rows] = await pool.query(
-        'SELECT * FROM users WHERE id = ?',
-        [id]
-      );
-      return rows[0] || null;
-    } catch (error) {
-      console.error('❌ Error en findById:', error.message);
-      return null;
-    }
-  }
-
-  /**
-   * Crear nuevo usuario
-   */
-  static async create({ username, email, password, fullName }) {
-    try {
-      const pool = getPool();
-      if (!pool) throw new Error('Base de datos no disponible');
-
+      if (!pool) throw new Error('BD no disponible');
       const hashedPassword = await bcrypt.hash(password, 10);
-
       const [result] = await pool.query(
-        `INSERT INTO users (username, email, password, full_name, plan, theme, created_at) 
-         VALUES (?, ?, ?, ?, 'free', 'light', NOW())`,
-        [
-          username.toLowerCase().trim(),
-          email.toLowerCase().trim(),
-          hashedPassword,
-          fullName || null
-        ]
+        'INSERT INTO users (username, email, password, full_name, role, plan, theme, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+        [username.toLowerCase().trim(), email.toLowerCase().trim(), hashedPassword, fullName || null, role, plan, 'light']
       );
-      
-      // Devolver el usuario creado
       return this.findById(result.insertId);
     } catch (error) {
-      console.error('❌ Error en create:', error.message);
+      console.error('create:', error.message);
       throw error;
     }
   }
 
-  /**
-   * Verificar contraseña
-   */
-  static async verifyPassword(plainPassword, hashedPassword) {
+  // ========== ACTUALIZAR ==========
+
+  static async update(id, data) {
     try {
-      return await bcrypt.compare(plainPassword, hashedPassword);
+      const pool = getPool();
+      if (!pool) return null;
+      const allowed = ['username', 'email', 'full_name', 'role', 'plan', 'bio', 'phone', 'company', 'position', 'website', 'location', 'github_username', 'github_token', 'avatar'];
+      const updates = [];
+      const params = [];
+      for (const [key, value] of Object.entries(data)) {
+        if (allowed.includes(key) && value !== undefined) {
+          updates.push(`${key} = ?`);
+          params.push(value);
+        }
+      }
+      if (updates.length === 0) return this.findById(id);
+      updates.push('updated_at = NOW()');
+      params.push(id);
+      await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+      return this.findById(id);
     } catch (error) {
-      console.error('❌ Error en verifyPassword:', error.message);
+      console.error('update:', error.message);
+      return null;
+    }
+  }
+
+  static async updatePassword(id, newPassword) {
+    try {
+      const pool = getPool();
+      if (!pool) return false;
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await pool.query('UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?', [hashed, id]);
+      return true;
+    } catch (error) {
       return false;
     }
   }
 
-  /**
-   * Actualizar último login
-   */
+  // ========== ELIMINAR ==========
+
+  static async delete(id) {
+    try {
+      const pool = getPool();
+      if (!pool) return false;
+      const user = await this.findById(id);
+      if (!user) return false;
+      if (user.role === 'owner') throw new Error('No se puede eliminar al Owner');
+      await pool.query('DELETE FROM users WHERE id = ?', [id]);
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ========== MÉTODOS EXISTENTES ==========
+
+  static async verifyPassword(plain, hashed) {
+    try { return await bcrypt.compare(plain, hashed); } catch { return false; }
+  }
+
   static async updateLastLogin(userId) {
     try {
       const pool = getPool();
       if (!pool) return;
-
-      await pool.query(
-        'UPDATE users SET last_login = NOW() WHERE id = ?',
-        [userId]
-      );
-    } catch (error) {
-      console.error('❌ Error en updateLastLogin:', error.message);
-    }
+      await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]);
+    } catch (error) {}
   }
 
-  /**
-   * Actualizar plan del usuario
-   */
   static async updatePlan(userId, plan) {
     try {
       const pool = getPool();
       if (!pool) return;
-
-      await pool.query(
-        'UPDATE users SET plan = ? WHERE id = ?',
-        [plan, userId]
-      );
-    } catch (error) {
-      console.error('❌ Error en updatePlan:', error.message);
-    }
+      await pool.query('UPDATE users SET plan = ?, updated_at = NOW() WHERE id = ?', [plan, userId]);
+    } catch (error) {}
   }
 
-  /**
-   * Actualizar tema del usuario
-   */
   static async updateTheme(userId, theme) {
     try {
       const pool = getPool();
       if (!pool) return;
-
-      await pool.query(
-        'UPDATE users SET theme = ? WHERE id = ?',
-        [theme, userId]
-      );
-    } catch (error) {
-      console.error('❌ Error en updateTheme:', error.message);
-    }
+      await pool.query('UPDATE users SET theme = ?, updated_at = NOW() WHERE id = ?', [theme, userId]);
+    } catch (error) {}
   }
 
-  /**
-   * Actualizar proyectos seleccionados
-   */
   static async updateSelectedProjects(userId, projects) {
     try {
       const pool = getPool();
       if (!pool) return;
-
-      await pool.query(
-        'UPDATE users SET selected_projects = ? WHERE id = ?',
-        [JSON.stringify(projects), userId]
-      );
-    } catch (error) {
-      console.error('❌ Error en updateSelectedProjects:', error.message);
-    }
+      await pool.query('UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(projects), userId]);
+    } catch (error) {}
   }
 
-  /**
-   * Obtener proyectos seleccionados
-   */
   static async getSelectedProjects(userId) {
     try {
       const pool = getPool();
       if (!pool) return [];
-
-      const [rows] = await pool.query(
-        'SELECT selected_projects FROM users WHERE id = ?',
-        [userId]
-      );
-      
-      if (rows[0] && rows[0].selected_projects) {
-        try {
-          return typeof rows[0].selected_projects === 'string'
-            ? JSON.parse(rows[0].selected_projects)
-            : rows[0].selected_projects;
-        } catch {
-          return [];
-        }
+      const [rows] = await pool.query('SELECT selected_projects FROM users WHERE id = ?', [userId]);
+      if (rows[0]?.selected_projects) {
+        try { return typeof rows[0].selected_projects === 'string' ? JSON.parse(rows[0].selected_projects) : rows[0].selected_projects; } catch { return []; }
       }
       return [];
-    } catch (error) {
-      console.error('❌ Error en getSelectedProjects:', error.message);
-      return [];
-    }
+    } catch (error) { return []; }
+  }
+
+  static async updateGitHubCredentials(userId, githubUsername, githubToken) {
+    try {
+      const pool = getPool();
+      if (!pool) return;
+      await pool.query('UPDATE users SET github_username = ?, github_token = ?, updated_at = NOW() WHERE id = ?', [githubUsername || null, githubToken || null, userId]);
+    } catch (error) {}
+  }
+
+  static async getGitHubCredentials(userId) {
+    try {
+      const pool = getPool();
+      if (!pool) return null;
+      const [rows] = await pool.query('SELECT github_username, github_token FROM users WHERE id = ?', [userId]);
+      if (rows[0]?.github_username && rows[0]?.github_token) return { username: rows[0].github_username, token: rows[0].github_token };
+      return null;
+    } catch (error) { return null; }
   }
 }
 
