@@ -1,93 +1,171 @@
-<header style="background: var(--nav-bg); backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border);">
-  <nav style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <a href="/" style="font-size: 1.6rem; font-weight: 800; text-decoration: none; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
-        DevCraft<span style="background: var(--accent2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Studio</span>
-      </a>
-      <!-- Badge del plan (solo si está autenticado) -->
-      <% if (typeof userPlan !== 'undefined' && userPlan && typeof user !== 'undefined' && user) { %>
-        <a href="/plans" style="text-decoration: none;">
-          <span style="background: <%= userPlan.color || '#6c5ce7' %>20; color: <%= userPlan.color || '#6c5ce7' %>; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid <%= userPlan.color || '#6c5ce7' %>40;">
-            <%= userPlan.icon || '🆓' %> <%= userPlan.name || 'Gratis' %>
-          </span>
-        </a>
-      <% } %>
-    </div>
+<header style="background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--nav-border, var(--border)); transition: all 0.3s ease;">
+  <nav style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px;">
     
-    <ul style="display: flex; list-style: none; gap: 20px; align-items: center;">
-      <li><a href="/#hero" style="color: var(--text); text-decoration: none; font-weight: 500;">Inicio</a></li>
-      <li><a href="/#services" style="color: var(--text); text-decoration: none; font-weight: 500;">Servicios</a></li>
-      <li><a href="/#portfolio" style="color: var(--text); text-decoration: none; font-weight: 500;">Proyectos</a></li>
-      <li><a href="/#tech-stack" style="color: var(--text); text-decoration: none; font-weight: 500;">Tecnologías</a></li>
-      <li><a href="/plans" style="color: var(--text); text-decoration: none; font-weight: 500;">Planes</a></li>
-      <li><a href="/#contact" style="color: var(--text); text-decoration: none; font-weight: 500;">Contacto</a></li>
+    <!-- Logo -->
+    <a href="/" style="display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0;">
+      <span style="font-size: 1.5rem;">🚀</span>
+      <span style="font-size: 1.3rem; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
+        DevCraft<span style="background: var(--accent2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Studio</span>
+      </span>
+    </a>
+    
+    <!-- Menú desktop -->
+    <ul id="desktop-menu" style="display: flex; list-style: none; gap: 4px; align-items: center; margin: 0; padding: 0;">
+      <li><a href="/#hero" style="color: var(--text); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap;" onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='transparent'">Inicio</a></li>
+      <li><a href="/#services" style="color: var(--text); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap;" onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='transparent'">Servicios</a></li>
+      <li><a href="/#portfolio" style="color: var(--text); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap;" onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='transparent'">Proyectos</a></li>
+      <li><a href="/#tech-stack" style="color: var(--text); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap;" onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='transparent'">Tecnologías</a></li>
+      <li><a href="/plans" style="color: var(--text); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; font-size: 0.9rem; white-space: nowrap;" onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='transparent'">Planes</a></li>
       
-      <!-- Botón de tema -->
-      <li>
-        <a href="/toggle-theme?current=<%= theme %>" style="background: var(--card-bg); padding: 8px 12px; border-radius: 50px; border: 1px solid var(--border); font-size: 1.2rem; text-decoration: none; cursor: pointer; transition: transform 0.2s; display: inline-block;"
-           onmouseover="this.style.transform='scale(1.1)'"
-           onmouseout="this.style.transform='scale(1)'"
+      <% if (typeof user !== 'undefined' && user) { %>
+        <li style="margin-left: 6px;">
+          <a href="/profile" style="display: flex; align-items: center; gap: 6px; text-decoration: none; padding: 6px 12px; border-radius: 50px; background: var(--badge-bg); border: 1px solid var(--border); transition: all 0.2s; white-space: nowrap;"
+             onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='var(--badge-bg)'">
+            <span style="width: 26px; height: 26px; border-radius: 50%; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">
+              <%= (user.full_name || user.username).charAt(0).toUpperCase() %>
+            </span>
+            <span style="color: var(--text); font-size: 0.85rem; font-weight: 500;"><%= user.full_name || user.username %></span>
+          </a>
+        </li>
+        <% if (user.role === 'admin' || user.role === 'owner') { %>
+          <li><a href="/admin/users" style="color: var(--accent); text-decoration: none; font-weight: 600; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--accent-glow)'" onmouseout="this.style.background='transparent'">Admin</a></li>
+        <% } %>
+        <li><a href="/logout" style="color: var(--text-tertiary, var(--text-secondary)); text-decoration: none; font-weight: 500; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; white-space: nowrap;" onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'" onmouseout="this.style.background='transparent'">Salir</a></li>
+      <% } else { %>
+        <li style="margin-left: 6px;">
+          <a href="/login" style="background: var(--gradient); color: white; padding: 10px 18px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; box-shadow: 0 2px 8px rgba(108,92,231,0.3); white-space: nowrap;"
+             onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 15px rgba(108,92,231,0.4)'"
+             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(108,92,231,0.3)'">
+            Iniciar Sesión
+          </a>
+        </li>
+      <% } %>
+      
+      <!-- Botón tema -->
+      <li style="margin-left: 2px;">
+        <a href="/toggle-theme?current=<%= theme %>" style="display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--badge-bg); border: 1px solid var(--border); font-size: 1rem; text-decoration: none; transition: all 0.2s;"
+           onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'; this.style.transform='rotate(15deg)'"
+           onmouseout="this.style.background='var(--badge-bg)'; this.style.transform='rotate(0deg)'"
            title="Cambiar tema">
           <%= theme === 'dark' ? '☀️' : '🌙' %>
         </a>
       </li>
-      
-      <!-- Login / Usuario -->
-      <li>
-        <% if (typeof user !== 'undefined' && user) { %>
-          <!-- Usuario autenticado: dropdown -->
-          <div style="position: relative; display: inline-block;">
-            <button onclick="toggleUserMenu()" style="background: var(--gradient); color: white; padding: 8px 16px; border-radius: 50px; border: none; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; gap: 8px;"
-                    onmouseover="this.style.transform='scale(1.05)'"
-                    onmouseout="this.style.transform='scale(1)'">
-              👤 <%= user.username %>
-              <span style="font-size: 0.7rem;">▼</span>
-            </button>
-            <div id="user-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid var(--border); min-width: 180px; z-index: 100; overflow: hidden;">
-              <a href="/profile" style="display: block; padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
-                 onmouseover="this.style.background='var(--badge-bg)'"
-                 onmouseout="this.style.background='transparent'">👤 Mi Perfil</a>
-              <a href="/admin" style="display: block; padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
-                 onmouseover="this.style.background='var(--badge-bg)'"
-                 onmouseout="this.style.background='transparent'">⚙️ Administrar</a>
-              <a href="/plans" style="display: block; padding: 12px 18px; color: var(--text); text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
-                 onmouseover="this.style.background='var(--badge-bg)'"
-                 onmouseout="this.style.background='transparent'">📊 Planes</a>
-              <hr style="border: none; border-top: 1px solid var(--border); margin: 0;">
-              <a href="/logout" style="display: block; padding: 12px 18px; color: #d63031; text-decoration: none; font-size: 0.9rem; transition: background 0.2s;"
-                 onmouseover="this.style.background='#ff767520'"
-                 onmouseout="this.style.background='transparent'">🚪 Cerrar Sesión</a>
-            </div>
-          </div>
-        <% } else { %>
-          <!-- Usuario no autenticado: botón login -->
-          <a href="/login" style="background: var(--gradient); color: white; padding: 8px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s; display: inline-block;"
-             onmouseover="this.style.transform='scale(1.05)'"
-             onmouseout="this.style.transform='scale(1)'">
-            🔐 Iniciar Sesión
-          </a>
-        <% } %>
-      </li>
     </ul>
+    
+    <!-- Botón hamburguesa (solo móvil) -->
+    <button id="menu-toggle" onclick="toggleSidebar()" style="display: none; background: var(--badge-bg); border: 1px solid var(--border); color: var(--text); width: 40px; height: 40px; border-radius: 10px; font-size: 1.3rem; cursor: pointer; align-items: center; justify-content: center; transition: all 0.2s;"
+            onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'"
+            onmouseout="this.style.background='var(--badge-bg)'">
+      ☰
+    </button>
   </nav>
 </header>
 
-<script>
-  function toggleUserMenu() {
-    var dropdown = document.getElementById('user-dropdown');
-    if (dropdown.style.display === 'block') {
-      dropdown.style.display = 'none';
-    } else {
-      dropdown.style.display = 'block';
+<!-- ========================================== -->
+<!-- OVERLAY (fondo oscuro al abrir sidebar) -->
+<!-- ========================================== -->
+<div id="sidebar-overlay" onclick="closeSidebar()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; transition: opacity 0.3s ease;"></div>
+
+<!-- ========================================== -->
+<!-- SIDEBAR LATERAL (móvil) -->
+<!-- ========================================== -->
+<aside id="sidebar" style="position: fixed; top: 0; right: -320px; width: 300px; max-width: 85vw; height: 100%; background: var(--card-bg); z-index: 2000; transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -5px 0 30px rgba(0,0,0,0.3); overflow-y: auto; display: flex; flex-direction: column;">
+  
+  <!-- Cabecera del sidebar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border);">
+    <span style="font-weight: 700; font-size: 1.1rem; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Menú</span>
+    <button onclick="closeSidebar()" style="background: var(--badge-bg); border: 1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: 50%; font-size: 1rem; cursor: pointer; transition: all 0.2s;"
+            onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'"
+            onmouseout="this.style.background='var(--badge-bg)'">✕</button>
+  </div>
+  
+  <!-- Enlaces del sidebar -->
+  <nav style="flex: 1; padding: 15px;">
+    <ul style="list-style: none; display: flex; flex-direction: column; gap: 4px;">
+      <li><a href="/#hero" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">🏠 Inicio</a></li>
+      <li><a href="/#services" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">🖥️ Servicios</a></li>
+      <li><a href="/#portfolio" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">📁 Proyectos</a></li>
+      <li><a href="/#tech-stack" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">📊 Tecnologías</a></li>
+      <li><a href="/plans" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">💎 Planes</a></li>
+      
+      <li style="border-top: 1px solid var(--border); margin: 8px 0;"></li>
+      
+      <li><a href="/#contact" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">📧 Contacto</a></li>
+      
+      <% if (typeof user !== 'undefined' && user) { %>
+        <li><a href="/profile" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--badge-bg)'" onmouseout="this.style.background='transparent'">👤 Mi Perfil</a></li>
+        <% if (user.role === 'admin' || user.role === 'owner') { %>
+          <li><a href="/admin/users" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: var(--accent); text-decoration: none; font-weight: 600; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='var(--accent-glow)'" onmouseout="this.style.background='transparent'">⚙️ Admin</a></li>
+        <% } %>
+        <li><a href="/logout" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 12px; color: #ff6b6b; text-decoration: none; font-weight: 500; font-size: 1rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,107,107,0.1)'" onmouseout="this.style.background='transparent'">🚪 Cerrar Sesión</a></li>
+      <% } else { %>
+        <li>
+          <a href="/login" onclick="closeSidebar()" style="display: block; text-align: center; background: var(--gradient); color: white; padding: 14px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 1rem; margin-top: 8px;">
+            Iniciar Sesión
+          </a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+  
+  <!-- Tema en sidebar -->
+  <div style="padding: 15px 20px; border-top: 1px solid var(--border);">
+    <a href="/toggle-theme?current=<%= theme %>" onclick="closeSidebar()" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 500; background: var(--badge-bg); transition: all 0.2s;"
+       onmouseover="this.style.background='var(--bg-hover, var(--badge-bg))'"
+       onmouseout="this.style.background='var(--badge-bg)'">
+      <%= theme === 'dark' ? '☀️' : '🌙' %> Cambiar a tema <%= theme === 'dark' ? 'claro' : 'oscuro' %>
+    </a>
+  </div>
+</aside>
+
+<style>
+  /* ========================================== */
+  /* RESPONSIVE */
+  /* ========================================== */
+  @media (max-width: 900px) {
+    #desktop-menu {
+      display: none !important;
+    }
+    
+    #menu-toggle {
+      display: flex !important;
     }
   }
   
-  // Cerrar dropdown al hacer clic fuera
-  document.addEventListener('click', function(e) {
-    var dropdown = document.getElementById('user-dropdown');
-    var button = e.target.closest('button');
-    if (dropdown && !button && dropdown.style.display === 'block') {
-      dropdown.style.display = 'none';
+  @media (min-width: 901px) {
+    #sidebar,
+    #sidebar-overlay {
+      display: none !important;
     }
+  }
+  
+  /* Sidebar activo */
+  .sidebar-open {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    sidebar.style.right = '0';
+    overlay.style.display = 'block';
+    document.body.classList.add('sidebar-open');
+  }
+  
+  function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    sidebar.style.right = '-320px';
+    overlay.style.display = 'none';
+    document.body.classList.remove('sidebar-open');
+  }
+  
+  // Cerrar con tecla Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeSidebar();
   });
 </script>
