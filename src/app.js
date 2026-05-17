@@ -1093,6 +1093,8 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+
+// VERSION VERCEL - El servidor se inicia automáticamente al exportar la app, no necesitamos llamar a app.listen() ni manejar SIGINT/SIGTERM
 // ==========================================
 // INICIAR SERVIDOR
 // ==========================================
@@ -1130,7 +1132,7 @@ module.exports = app;
 
 
 
-/*
+/* Inicio para windows o linux
 // ==========================================
 // INICIAR SERVIDOR
 // ==========================================
