@@ -1093,12 +1093,27 @@ app.use(async (req, res, next) => {
   }
   next();
 });
+// ==========================================
+// INICIAR SERVIDOR
+// ==========================================
+
+async function start() {
+  const dbReady = await initDatabase();
+
+  if (dbReady) {
+    console.log('✅ Base de datos lista');
+  } else {
+    console.warn('⚠️  El sistema funcionará sin persistencia en base de datos');
+    console.warn('   Los datos se guardarán solo en cookies/sesión\n');
+  }
+};
 
 // ==========================================
 // EXPORTAR APLICACIÓN
 // ==========================================
 
 // Eliminamos app.listen() y process.on() ya que Vercel maneja el ciclo de vida
+start(); 
 module.exports = app;
 
 
