@@ -1,174 +1,126 @@
-<section id="contact" style="padding: 80px 20px; background: transparent; position: relative; z-index: 1;">
+<section id="contact" style="padding: 80px 20px; position: relative; overflow: hidden; background: transparent; display: flex; justify-content: center; align-items: center;">
   
-  <!-- Overlay sutil para legibilidad sin tapar partículas -->
-  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-secondary); opacity: 0.65; z-index: -1;"></div>
+  <!-- Fondo glass que deja ver partículas -->
+  <div style="position: absolute; inset: 0; background: var(--bg-secondary); opacity: 0.85; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); z-index: 0;"></div>
   
-  <div style="max-width: 650px; margin: 0 auto; text-align: center; position: relative; z-index: 1;">
+  <!-- Partículas decorativas locales -->
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;">
+    <div style="position: absolute; top: -15%; right: -10%; width: 350px; height: 350px; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%); border-radius: 50%; opacity: 0.5; animation: float 10s ease-in-out infinite;"></div>
+    <div style="position: absolute; bottom: -15%; left: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0, 206, 201, 0.15) 0%, transparent 70%); border-radius: 50%; opacity: 0.45; animation: float 8s ease-in-out infinite; animation-delay: 3s;"></div>
+  </div>
+
+  <!-- Contenedor centrado con ancho máximo -->
+  <div style="width: 100%; max-width: 700px; margin: 0 auto; position: relative; z-index: 1;">
     
-    <!-- Badge -->
-    <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px;">
-      CONTACTO
-    </span>
-    
-    <!-- Título -->
-    <h2 style="font-size: 2.5rem; margin-bottom: 15px; color: var(--text);">
-      Hablemos de tu <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">proyecto</span>
-    </h2>
-    
-    <!-- Descripción -->
-    <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 1.05rem; line-height: 1.6;">
-      Cuéntanos sobre tu idea y te responderemos en menos de 24 horas.
-    </p>
-    
-    <!-- Formulario -->
-    <form id="contact-form" style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+    <!-- Encabezado -->
+    <div style="text-align: center; margin-bottom: 40px;">
+      <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; border: 1px solid var(--border);">
+        CONTACTO
+      </span>
+      <h2 style="font-size: 2.2rem; margin-bottom: 12px; color: var(--text);">
+        Hablemos de tu <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">proyecto</span>
+      </h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">
+        Cuéntanos sobre tu idea y te responderemos en menos de 24 horas.
+      </p>
+    </div>
+
+    <!-- Tarjeta del formulario -->
+    <div style="background: var(--card-bg); border-radius: 20px; padding: 35px; box-shadow: var(--card-shadow); border: 1px solid var(--border);">
       
-      <!-- Campo: Nombre -->
-      <div>
-        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
-          👤 Nombre
-        </label>
-        <input type="text" name="name" required 
-               style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s;"
-               placeholder="Tu nombre completo"
-               onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
-               onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
-      </div>
+      <form id="contact-form" style="display: flex; flex-direction: column; gap: 18px;">
+        
+        <!-- Nombre -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text); font-size: 0.85rem;">
+            Nombre <span style="color: #ff6b6b;">*</span>
+          </label>
+          <input 
+            type="text" name="name" required 
+            placeholder="Tu nombre completo"
+            style="width: 100%; padding: 13px 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.9rem; transition: all 0.3s; outline: none;"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+          >
+        </div>
+        
+        <!-- Email -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text); font-size: 0.85rem;">
+            Email <span style="color: #ff6b6b;">*</span>
+          </label>
+          <input 
+            type="email" name="email" required 
+            placeholder="tu@email.com"
+            style="width: 100%; padding: 13px 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.9rem; transition: all 0.3s; outline: none;"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+          >
+        </div>
+        
+        <!-- Asunto -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text); font-size: 0.85rem;">
+            Asunto
+          </label>
+          <input 
+            type="text" name="subject" 
+            placeholder="¿Sobre qué quieres hablar?"
+            style="width: 100%; padding: 13px 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.9rem; transition: all 0.3s; outline: none;"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+          >
+        </div>
+        
+        <!-- Mensaje -->
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: var(--text); font-size: 0.85rem;">
+            Mensaje <span style="color: #ff6b6b;">*</span>
+          </label>
+          <textarea 
+            name="message" rows="4" required 
+            placeholder="Cuéntanos sobre tu proyecto..."
+            style="width: 100%; padding: 13px 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 0.9rem; resize: vertical; min-height: 100px; transition: all 0.3s; outline: none; font-family: inherit;"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+          ></textarea>
+        </div>
+        
+        <!-- Botón -->
+        <button 
+          type="submit" 
+          style="background: var(--gradient); color: white; padding: 14px 28px; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); letter-spacing: 0.3px;"
+          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(108, 92, 231, 0.4)'"
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(108, 92, 231, 0.3)'"
+        >
+          🚀 Enviar Mensaje
+        </button>
+      </form>
       
-      <!-- Campo: Email -->
-      <div>
-        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
-          📧 Email
-        </label>
-        <input type="email" name="email" required 
-               style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s;"
-               placeholder="tu@email.com"
-               onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
-               onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
-      </div>
+      <!-- Mensaje de estado -->
+      <div id="form-message" style="margin-top: 15px; display: none;"></div>
       
-      <!-- Campo: Tipo de proyecto -->
-      <div>
-        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
-          🎯 Tipo de proyecto
-        </label>
-        <select name="projectType" 
-                style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23636e72" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'); background-repeat: no-repeat; background-position: right 15px center;"
-                onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
-                onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
-          <option value="">Selecciona una opción</option>
-          <option value="web">🌐 Desarrollo Web</option>
-          <option value="mobile">📱 App Móvil</option>
-          <option value="cloud">☁️ Cloud / DevOps</option>
-          <option value="ai">🤖 Inteligencia Artificial</option>
-          <option value="security">🔒 Ciberseguridad</option>
-          <option value="consulting">🎯 Consultoría Tech</option>
-          <option value="other">💡 Otro</option>
-        </select>
-      </div>
-      
-      <!-- Campo: Presupuesto -->
-      <div>
-        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
-          💰 Presupuesto estimado
-        </label>
-        <select name="budget" 
-                style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23636e72" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'); background-repeat: no-repeat; background-position: right 15px center;"
-                onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
-                onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
-          <option value="">Selecciona un rango</option>
-          <option value="small">Menos de $1,000 USD</option>
-          <option value="medium">$1,000 - $5,000 USD</option>
-          <option value="large">$5,000 - $20,000 USD</option>
-          <option value="enterprise">Más de $20,000 USD</option>
-          <option value="not-sure">Aún no lo sé</option>
-        </select>
-      </div>
-      
-      <!-- Campo: Mensaje -->
-      <div>
-        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text); font-size: 0.9rem;">
-          💬 Mensaje
-        </label>
-        <textarea name="message" rows="5" required 
-                  style="width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--input-bg, var(--card-bg)); color: var(--text); font-size: 1rem; resize: vertical; outline: none; transition: all 0.3s; font-family: inherit;"
-                  placeholder="Cuéntanos sobre tu proyecto, objetivos, tecnologías que te interesan..."
-                  onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px var(--accent-glow)'"
-                  onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"></textarea>
-      </div>
-      
-      <!-- Checkbox de aceptación -->
-      <div style="display: flex; align-items: flex-start; gap: 10px;">
-        <input type="checkbox" name="accept" required id="accept-checkbox" 
-               style="margin-top: 3px; width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer;">
-        <label for="accept-checkbox" style="color: var(--text-secondary); font-size: 0.85rem; cursor: pointer; line-height: 1.5;">
-          Acepto la <a href="#" style="color: var(--accent); text-decoration: none;">política de privacidad</a> y el tratamiento de mis datos para fines de contacto.
-        </label>
-      </div>
-      
-      <!-- Botón de envío -->
-      <button type="submit" id="contact-submit-btn" 
-              style="background: var(--gradient); color: white; padding: 16px 30px; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; animation: glow 2s infinite;"
-              onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 15px 40px var(--accent-glow)'"
-              onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'">
-        <span id="contact-btn-text">Enviar Mensaje</span>
-        <span id="contact-btn-loader" style="display: none;">
-          <span style="display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-        </span>
-      </button>
-    </form>
-    
-    <!-- Mensaje de estado -->
-    <div id="form-message" style="margin-top: 20px; display: none; padding: 16px; border-radius: 12px; font-weight: 600; text-align: center;"></div>
-    
-    <!-- Información de contacto alternativa -->
-    <div style="margin-top: 50px; display: flex; gap: 30px; justify-content: center; flex-wrap: wrap;">
-      <div style="text-align: center;">
-        <div style="font-size: 2rem; margin-bottom: 8px;">📧</div>
-        <p style="color: var(--text); font-weight: 600; font-size: 0.95rem;">Email</p>
-        <a href="mailto:hello@devcraftstudio.dev" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">hello@devcraftstudio.dev</a>
-      </div>
-      <div style="text-align: center;">
-        <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
-        <p style="color: var(--text); font-weight: 600; font-size: 0.95rem;">WhatsApp</p>
-        <a href="https://wa.me/15551234567" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">+1 (555) 123-4567</a>
-      </div>
-      <div style="text-align: center;">
-        <div style="font-size: 2rem; margin-bottom: 8px;">📍</div>
-        <p style="color: var(--text); font-weight: 600; font-size: 0.95rem;">Ubicación</p>
-        <p style="color: var(--text-secondary); font-size: 0.9rem;">San Francisco, CA</p>
+      <!-- Info de contacto -->
+      <div style="margin-top: 25px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; color: var(--text-secondary); font-size: 0.8rem;">
+        <span>📧 hello@devcraftstudio.dev</span>
+        <span>📱 +1 (555) 123-4567</span>
+        <span>📍 San Francisco, CA</span>
       </div>
     </div>
   </div>
 </section>
 
-<style>
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-</style>
-
 <script>
-  document.getElementById('contact-form').addEventListener('submit', async function(e) {
+  document.getElementById('contact-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const formData = new FormData(this);
+    const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
-    delete data.accept; // No enviar el checkbox
     
-    const btnText = document.getElementById('contact-btn-text');
-    const btnLoader = document.getElementById('contact-btn-loader');
-    const submitBtn = document.getElementById('contact-submit-btn');
-    const messageEl = document.getElementById('form-message');
-    
-    // Mostrar loader
-    btnText.style.display = 'none';
-    btnLoader.style.display = 'flex';
-    btnLoader.style.alignItems = 'center';
-    btnLoader.style.justifyContent = 'center';
-    submitBtn.disabled = true;
-    submitBtn.style.opacity = '0.8';
-    submitBtn.style.cursor = 'wait';
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ Enviando...';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
     
     try {
       const response = await fetch('/contact', {
@@ -178,44 +130,37 @@
       });
       
       const result = await response.json();
-      
-      // Mostrar mensaje
-      messageEl.style.display = 'block';
+      const messageEl = document.getElementById('form-message');
       
       if (result.success) {
-        messageEl.style.background = '#00b89420';
-        messageEl.style.color = '#00b894';
-        messageEl.style.border = '1px solid #00b89440';
-        messageEl.innerHTML = '✅ ¡Mensaje enviado con éxito!<br><span style="font-size: 0.85rem; font-weight: 400;">Te contactaremos en menos de 24 horas.</span>';
-        
-        // Resetear formulario
-        this.reset();
-        
-        // Scroll al mensaje
-        messageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        messageEl.style.display = 'block';
+        messageEl.style.background = '#00b894';
+        messageEl.style.color = 'white';
+        messageEl.style.padding = '14px 18px';
+        messageEl.style.borderRadius = '10px';
+        messageEl.style.fontWeight = '500';
+        messageEl.style.textAlign = 'center';
+        messageEl.style.fontSize = '0.9rem';
+        messageEl.innerHTML = '✅ ¡Mensaje enviado con éxito! Te contactaremos pronto.';
+        e.target.reset();
       } else {
-        throw new Error(result.message || 'Error al enviar');
+        throw new Error(result.error || 'Error desconocido');
       }
     } catch (error) {
+      const messageEl = document.getElementById('form-message');
       messageEl.style.display = 'block';
-      messageEl.style.background = '#ff767520';
-      messageEl.style.color = '#d63031';
-      messageEl.style.border = '1px solid #ff767540';
-      messageEl.innerHTML = '❌ Error al enviar el mensaje.<br><span style="font-size: 0.85rem; font-weight: 400;">Intenta de nuevo o escríbenos directamente a hello@devcraftstudio.dev</span>';
-      
-      messageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      messageEl.style.background = '#ff6b6b';
+      messageEl.style.color = 'white';
+      messageEl.style.padding = '14px 18px';
+      messageEl.style.borderRadius = '10px';
+      messageEl.style.fontWeight = '500';
+      messageEl.style.textAlign = 'center';
+      messageEl.style.fontSize = '0.9rem';
+      messageEl.textContent = '❌ Error al enviar. Por favor, intenta de nuevo.';
     } finally {
-      // Restaurar botón
-      btnText.style.display = 'inline';
-      btnLoader.style.display = 'none';
-      submitBtn.disabled = false;
-      submitBtn.style.opacity = '1';
-      submitBtn.style.cursor = 'pointer';
-      
-      // Ocultar mensaje después de 8 segundos
-      setTimeout(() => {
-        messageEl.style.display = 'none';
-      }, 8000);
+      btn.textContent = originalText;
+      btn.disabled = false;
+      btn.style.opacity = '1';
     }
   });
 </script>

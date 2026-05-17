@@ -12,20 +12,30 @@
     </title>
     <!-- Vercel Speed Insights -->
     <script>
-      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+      window.si =
+        window.si ||
+        function () {
+          (window.siq = window.siq || []).push(arguments);
+        };
     </script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
     <style>
       :root {
-        --bg: #f8f9fa;
-        --bg-secondary: #ffffff;
+        /* Fondos - Ligeramente más oscuros para mejor contraste */
+        --bg: #eef0f5;
+        --bg-secondary: #f4f5f9;
         --text: #2d3436;
         --text-secondary: #636e72;
         --accent: #6c5ce7;
         --accent2: #a29bfe;
         --accent-glow: rgba(108, 92, 231, 0.3);
         --gradient: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-        --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-hero: linear-gradient(
+          135deg,
+          #e8eaf0 0%,
+          #f0e8f8 50%,
+          #e8f0f5 100%
+        );
         --card-bg: #ffffff;
         --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         --border: #e0e0e0;

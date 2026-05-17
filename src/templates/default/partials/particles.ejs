@@ -14,7 +14,8 @@
   const PARTICLE_COUNT = 90;
   let hue = 250;
   
-  const isDark = document.body.classList.contains('dark-theme');
+  // Detectar tema actual
+  let isDark = document.body.classList.contains('dark-theme');
   
   class Particle {
     constructor() {
@@ -23,7 +24,6 @@
       this.vx = (Math.random() - 0.5) * 0.8;
       this.vy = (Math.random() - 0.5) * 0.8;
       this.size = Math.random() * 3 + 1.5;
-      // Brillo aleatorio
       this.brightness = Math.random() * 0.4 + 0.6;
     }
     
@@ -36,7 +36,6 @@
       if (this.y < 0) this.y = height;
       if (this.y > height) this.y = 0;
       
-      // Variar brillo suavemente
       this.brightness += (Math.random() - 0.5) * 0.02;
       this.brightness = Math.max(0.4, Math.min(1, this.brightness));
     }
@@ -49,9 +48,11 @@
       ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
       
       if (isDark) {
+        // Tema oscuro: colores brillantes
         ctx.fillStyle = `hsla(${hue}, 80%, 65%, ${this.brightness * 0.15})`;
       } else {
-        ctx.fillStyle = `hsla(${hue}, 70%, 55%, ${this.brightness * 0.2})`;
+        // Tema claro: colores más oscuros y saturados para ser visibles
+        ctx.fillStyle = `hsla(${hue}, 85%, 40%, ${this.brightness * 0.12})`;
       }
       ctx.fill();
       
@@ -62,7 +63,8 @@
       if (isDark) {
         ctx.fillStyle = `hsla(${hue}, 90%, 70%, ${this.brightness * 0.9})`;
       } else {
-        ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${this.brightness * 0.7})`;
+        // Tema claro: color más oscuro y menos transparente
+        ctx.fillStyle = `hsla(${hue}, 90%, 35%, ${this.brightness * 0.75})`;
       }
       ctx.fill();
       
@@ -73,7 +75,8 @@
       if (isDark) {
         ctx.fillStyle = `hsla(${hue}, 100%, 85%, ${this.brightness})`;
       } else {
-        ctx.fillStyle = `hsla(${hue}, 90%, 70%, ${this.brightness * 0.8})`;
+        // Tema claro: núcleo más visible
+        ctx.fillStyle = `hsla(${hue}, 100%, 45%, ${this.brightness * 0.9})`;
       }
       ctx.fill();
     }
@@ -102,7 +105,8 @@
           if (isDark) {
             ctx.strokeStyle = `hsla(${hue}, 80%, 65%, ${alpha * 0.6})`;
           } else {
-            ctx.strokeStyle = `hsla(${hue}, 70%, 55%, ${alpha * 0.4})`;
+            // Tema claro: líneas más oscuras
+            ctx.strokeStyle = `hsla(${hue}, 80%, 35%, ${alpha * 0.5})`;
           }
           ctx.lineWidth = 0.8;
           ctx.stroke();
@@ -114,11 +118,11 @@
   function animate() {
     if (!ctx) return;
     
-    // Efecto estela
+    // Efecto estela - fondo más opaco en tema claro para mejor contraste
     if (isDark) {
       ctx.fillStyle = 'rgba(15, 15, 26, 0.1)';
     } else {
-      ctx.fillStyle = 'rgba(248, 249, 250, 0.15)';
+      ctx.fillStyle = 'rgba(238, 240, 245, 0.25)';
     }
     ctx.fillRect(0, 0, width, height);
     
@@ -142,7 +146,9 @@
   function updateTheme() {
     const nowDark = document.body.classList.contains('dark-theme');
     if (nowDark !== isDark) {
-      location.reload();
+      isDark = nowDark;
+      // Reiniciar partículas con nuevos colores sin recargar
+      initParticles();
     }
   }
   
