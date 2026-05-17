@@ -1075,7 +1075,7 @@ app.use(async (req, res) => {
     `);
   }
 });
-/*
+
 // ==========================================
 // INICIAR CONEXIÓN (Adaptado para Vercel)
 // ==========================================
@@ -1083,7 +1083,7 @@ app.use(async (req, res) => {
 // Middleware para asegurar que la base de datos se inicialice antes de procesar cualquier ruta
 app.use(async (req, res, next) => {
   try {
-    // initDatabase() debe estar preparado para no duplicar conexiones si ya está lista
+    initDatabase() //debe estar preparado para no duplicar conexiones si ya está lista
     const dbReady = await initDatabase();
     if (!dbReady) {
       console.warn('⚠️ El sistema funciona sin persistencia en base de datos');
@@ -1093,35 +1093,17 @@ app.use(async (req, res, next) => {
   }
   next();
 });
-*/
-/*
-// VERSION VERCEL - El servidor se inicia automáticamente al exportar la app, no necesitamos llamar a app.listen() ni manejar SIGINT/SIGTERM
-// ==========================================
-// INICIAR SERVIDOR
-// ==========================================
-
-async function start() {
-  const dbReady = await initDatabase();
-
-  if (dbReady) {
-    console.log('✅ Base de datos lista');
-  } else {
-    console.warn('⚠️  El sistema funcionará sin persistencia en base de datos');
-    console.warn('   Los datos se guardarán solo en cookies/sesión\n');
-  }
-};
 
 // ==========================================
 // EXPORTAR APLICACIÓN
 // ==========================================
 
 // Eliminamos app.listen() y process.on() ya que Vercel maneja el ciclo de vida
-start(); 
 module.exports = app;
-*/
 
 
-// Inicio para windows o linux
+
+/* Inicio para windows o linux
 // ==========================================
 // INICIAR SERVIDOR
 // ==========================================
@@ -1167,3 +1149,4 @@ async function start() {
 }
 
 start();
+*/
