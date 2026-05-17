@@ -6,15 +6,35 @@ class User {
   // ========== BÚSQUEDAS ==========
 
   static async findByEmail(email) {
-    if (!email) return null;
+    if (!email || typeof email !== 'string') {
+      console.error('❌ findByEmail: email inválido:', email);
+      return null;
+    }
+
     try {
-      const [rows] = await query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+      const pool = getPool();
+      if (!pool) {
+        console.error('❌ findByEmail: Pool no disponible');
+        return null;
+      }
+
+      console.log('🔍 Buscando usuario:', email.toLowerCase().trim());
+
+      const [rows] = await query(
+        'SELECT * FROM users WHERE email = ?',
+        [email.toLowerCase().trim()]
+      );
+
+      console.log('   Resultado:', rows.length > 0 ? 'Encontrado' : 'No encontrado');
+
       return rows[0] || null;
     } catch (error) {
-      console.error('findByEmail:', error.message);
+      console.error('❌ findByEmail Error:', error.message);
+      console.error('   Stack:', error.stack);
       return null;
     }
   }
+
 
   static async findByUsername(username) {
     if (!username) return null;
@@ -150,23 +170,34 @@ class User {
   // ========== MÉTODOS RÁPIDOS ==========
 
   static async verifyPassword(plain, hashed) {
-    try { return await bcrypt.compare(plain, hashed); } catch { return false; }
+    try {
+      console.log('🔑 Verificando contraseña...');
+      console.log('   Plain:', plain ? 'Recibido' : 'Vacío');
+      console.log('   Hashed:', hashed ? 'Recibido (' + hashed.substring(0, 10) + '...)' : 'Vacío');
+
+      const result = await bcrypt.compare(plain, hashed);
+      console.log('   Resultado:', result ? 'Coincide ✅' : 'No coincide ❌');
+      return result;
+    } catch (error) {
+      console.error('❌ verifyPassword Error:', error.message);
+      return false;
+    }
   }
 
   static async updateLastLogin(userId) {
-    try { await executeQuery('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]); } catch (error) {}
+    try { await executeQuery('UPDATE users SET last_login = NOW() WHERE id = ?', [userId]); } catch (error) { }
   }
 
   static async updatePlan(userId, plan) {
-    try { await executeQuery('UPDATE users SET plan = ?, updated_at = NOW() WHERE id = ?', [plan, userId]); } catch (error) {}
+    try { await executeQuery('UPDATE users SET plan = ?, updated_at = NOW() WHERE id = ?', [plan, userId]); } catch (error) { }
   }
 
   static async updateTheme(userId, theme) {
-    try { await executeQuery('UPDATE users SET theme = ?, updated_at = NOW() WHERE id = ?', [theme, userId]); } catch (error) {}
+    try { await executeQuery('UPDATE users SET theme = ?, updated_at = NOW() WHERE id = ?', [theme, userId]); } catch (error) { }
   }
 
   static async updateSelectedProjects(userId, projects) {
-    try { await executeQuery('UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(projects), userId]); } catch (error) {}
+    try { await executeQuery('UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(projects), userId]); } catch (error) { }
   }
 
   static async getSelectedProjects(userId) {
@@ -180,7 +211,7 @@ class User {
   }
 
   static async updateGitHubCredentials(userId, githubUsername, githubToken) {
-    try { await executeQuery('UPDATE users SET github_username = ?, github_token = ?, updated_at = NOW() WHERE id = ?', [githubUsername || null, githubToken || null, userId]); } catch (error) {}
+    try { await executeQuery('UPDATE users SET github_username = ?, github_token = ?, updated_at = NOW() WHERE id = ?', [githubUsername || null, githubToken || null, userId]); } catch (error) { }
   }
 
   static async getGitHubCredentials(userId) {

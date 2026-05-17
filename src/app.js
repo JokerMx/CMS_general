@@ -1,13 +1,4 @@
 require('dotenv').config();
-
-// 🆕 Forzar lectura de variables en Vercel
-console.log('🔍 Verificando variables de entorno:');
-console.log('   DB_HOST:', process.env.DB_HOST || 'NO');
-console.log('   DB_NAME:', process.env.DB_NAME || 'NO');
-console.log('   DB_USER:', process.env.DB_USER || 'NO');
-console.log('   DB_PASS:', process.env.DB_PASS ? 'SI (longitud: ' + process.env.DB_PASS.length + ')' : 'NO');
-console.log('   SESSION_SECRET:', process.env.SESSION_SECRET ? 'SI' : 'NO');
-
 const Config = require('./models/Config');
 const express = require('express');
 const session = require('express-session');
@@ -183,26 +174,44 @@ app.get('/login', isNotAuthenticated, async (req, res) => {
   }
 });
 
-// Procesar login (CORREGIDO)
-app.post('/login', isNotAuthenticated, validateLoginFields, async (req, res) => {
+app.post('/login', isNotAuthenticated, async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    console.log('\n🔐 INTENTO DE LOGIN');
+    console.log('   Email:', email);
+    console.log('   Password:', password ? 'Recibido' : 'Vacío');
 
-    // Buscar usuario
+    if (!email || !password) {
+      console.log('❌ Campos vacíos');
+      return res.redirect('/login?error=Todos los campos son obligatorios');
+    }
+
+    // Verificar conexión a BD
+    const pool = require('./database').getPool();
+    console.log('   Pool BD:', pool ? 'Disponible ✅' : 'NO DISPONIBLE ❌');
+    
+    if (!pool) {
+      return res.redirect('/login?error=Error de conexión a la base de datos');
+    }
+
     const user = await User.findByEmail(email);
-
+    
     if (!user) {
+      console.log('❌ Usuario no encontrado:', email);
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
+    
+    console.log('✅ Usuario encontrado:', user.username);
 
-    // Verificar contraseña
     const isValid = await User.verifyPassword(password, user.password);
-
+    
     if (!isValid) {
+      console.log('❌ Contraseña incorrecta');
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
 
-    // Crear sesión
+    // Login exitoso
     req.session.userId = user.id;
     req.session.userPlan = user.plan || 'free';
     req.session.userEmail = user.email;
@@ -210,15 +219,12 @@ app.post('/login', isNotAuthenticated, validateLoginFields, async (req, res) => 
     req.session.justLoggedIn = true;
 
     await User.updateLastLogin(user.id);
-
-    console.log(`✅ Login exitoso: ${user.username} (${user.email})`);
-
-    // Redirigir a la página de bienvenida
+    console.log('✅ Login exitoso:', user.username);
     res.redirect('/welcome');
-
+    
   } catch (error) {
     console.error('❌ Error en login:', error.message);
-    res.redirect('/login?error=Error al iniciar sesión. Intenta de nuevo.');
+    res.redirect('/login?error=Error al iniciar sesión');
   }
 });
 
