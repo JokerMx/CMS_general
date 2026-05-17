@@ -1093,7 +1093,7 @@ app.use(async (req, res, next) => {
   }
   next();
 });
-
+/*
 // VERSION VERCEL - El servidor se inicia automáticamente al exportar la app, no necesitamos llamar a app.listen() ni manejar SIGINT/SIGTERM
 // ==========================================
 // INICIAR SERVIDOR
@@ -1117,22 +1117,10 @@ async function start() {
 // Eliminamos app.listen() y process.on() ya que Vercel maneja el ciclo de vida
 start(); 
 module.exports = app;
+*/
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Inicio para windows o linux
+// Inicio para windows o linux
 // ==========================================
 // INICIAR SERVIDOR
 // ==========================================
@@ -1178,4 +1166,3 @@ async function start() {
 }
 
 start();
-*/
