@@ -1077,6 +1077,46 @@ app.use(async (req, res) => {
 });
 
 // ==========================================
+// INICIAR CONEXIÓN (Adaptado para Vercel)
+// ==========================================
+
+// Middleware para asegurar que la base de datos se inicialice antes de procesar cualquier ruta
+app.use(async (req, res, next) => {
+  try {
+    // initDatabase() debe estar preparado para no duplicar conexiones si ya está lista
+    const dbReady = await initDatabase();
+    if (!dbReady) {
+      console.warn('⚠️ El sistema funciona sin persistencia en base de datos');
+    }
+  } catch (error) {
+    console.error('❌ Error crítico al conectar la base de datos:', error);
+  }
+  next();
+});
+
+// ==========================================
+// EXPORTAR APLICACIÓN
+// ==========================================
+
+// Eliminamos app.listen() y process.on() ya que Vercel maneja el ciclo de vida
+module.exports = app;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+// ==========================================
 // INICIAR SERVIDOR
 // ==========================================
 
@@ -1121,3 +1161,4 @@ async function start() {
 }
 
 start();
+*/
