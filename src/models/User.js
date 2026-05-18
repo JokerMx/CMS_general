@@ -6,34 +6,31 @@ class User {
   // ========== BÚSQUEDAS ==========
 
   static async findByEmail(email) {
-    if (!email || typeof email !== 'string') {
-      console.error('❌ findByEmail: email inválido:', email);
-      return null;
-    }
-
+  if (!email) return null;
+  
+  // Intentar hasta 3 veces
+  for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const pool = getPool();
       if (!pool) {
-        console.error('❌ findByEmail: Pool no disponible');
-        return null;
+        console.log('🔄 findByEmail: Pool no disponible, esperando...');
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
       }
-
-      console.log('🔍 Buscando usuario:', email.toLowerCase().trim());
-
-      const [rows] = await query(
-        'SELECT * FROM users WHERE email = ?',
-        [email.toLowerCase().trim()]
-      );
-
-      console.log('   Resultado:', rows.length > 0 ? 'Encontrado' : 'No encontrado');
-
+      
+      const [rows] = await query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
       return rows[0] || null;
     } catch (error) {
-      console.error('❌ findByEmail Error:', error.message);
-      console.error('   Stack:', error.stack);
-      return null;
+      console.error(`❌ findByEmail intento ${attempt}/3:`, error.message);
+      if (attempt < 3) {
+        await new Promise(r => setTimeout(r, 500 * attempt));
+      }
     }
   }
+  
+  console.error('❌ findByEmail: Todos los intentos fallaron');
+  return null;
+}
 
 
   static async findByUsername(username) {

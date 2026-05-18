@@ -58,9 +58,9 @@ async function getGitHubService(req) {
       if (credentials && credentials.token && credentials.username) {
         token = credentials.token;
         username = credentials.username;
-        console.log(`🔑 Usando credenciales de GitHub del usuario (BD)`);
+        console.log('🔑 Usando credenciales de GitHub del usuario (BD)');
       } else {
-        console.log(`🔑 Usando credenciales de GitHub del .env`);
+        console.log('🔑 Usando credenciales de GitHub del .env');
       }
     } catch (error) {
       console.error('Error al obtener credenciales de BD:', error.message);
@@ -173,91 +173,91 @@ app.get('/login', isNotAuthenticated, async (req, res) => {
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
   }
 });
-
+// ✅ CORRECTO - Una sola respuesta
 app.post('/login', isNotAuthenticated, async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log('\n🔐 INTENTO DE LOGIN');
-    console.log('   Email:', email);
-    console.log('   Password:', password ? 'Recibido' : 'Vacío');
-
     if (!email || !password) {
-      console.log('❌ Campos vacíos');
       return res.redirect('/login?error=Todos los campos son obligatorios');
     }
 
-    // Verificar conexión a BD
-    const pool = require('./database').getPool();
-    console.log('   Pool BD:', pool ? 'Disponible ✅' : 'NO DISPONIBLE ❌');
-
-    if (!pool) {
-      return res.redirect('/login?error=Error de conexión a la base de datos');
-    }
-
     const user = await User.findByEmail(email);
-
+    
     if (!user) {
-      console.log('❌ Usuario no encontrado:', email);
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
-
-    console.log('✅ Usuario encontrado:', user.username);
 
     const isValid = await User.verifyPassword(password, user.password);
-
+    
     if (!isValid) {
-      console.log('❌ Contraseña incorrecta');
       return res.redirect('/login?error=Email o contraseña incorrectos');
     }
 
-    // Login exitoso
+    // Guardar datos en sesión
     req.session.userId = user.id;
     req.session.userPlan = user.plan || 'free';
     req.session.userEmail = user.email;
     req.session.userName = user.full_name || user.username;
     req.session.justLoggedIn = true;
 
-    await User.updateLastLogin(user.id);
-    console.log('✅ Login exitoso:', user.username);
-    // Redirigir según el rol
-    if (user.role === 'admin' || user.role === 'owner') {
-      res.redirect('/admin/users');
-    } else {
+    // ✅ Guardar sesión y luego redirigir (UNA SOLA RESPUESTA)
+    req.session.save((err) => {
+      if (err) {
+        console.error('❌ Error al guardar sesión:', err);
+        return res.redirect('/login?error=Error al iniciar sesión');
+      }
+      
+      User.updateLastLogin(user.id).catch(() => {});
+      console.log('✅ Login exitoso:', user.username);
       res.redirect('/welcome');
-    }
-
+    });
+    
   } catch (error) {
     console.error('❌ Error en login:', error.message);
-    res.redirect('/login?error=Error al iniciar sesión');
+    return res.redirect('/login?error=Error al iniciar sesión');
   }
 });
 
-// Página de bienvenida después del login
 app.get('/welcome', isAuthenticated, async (req, res) => {
   try {
-    const showModal = req.session.justLoggedIn || false;
-    req.session.justLoggedIn = false;
+    // ✅ Leer el flag de la sesión
+    const showModal = req.session.justLoggedIn === true;
+    req.session.justLoggedIn = false; // Limpiar para que no se muestre de nuevo
 
-    const user = await User.findById(req.session.userId);
-    const returnTo = req.session.returnTo || '/';
-    delete req.session.returnTo;
+    console.log('🎉 showModal:', showModal); // Debug
 
-    const bodyHtml = await engine.render('welcome.ejs', {
-      user,
-      showModal,
-      returnTo
-    }, req.templateSets);
+    let user = null;
+    try {
+      user = await User.findById(req.session.userId);
+    } catch (error) {
+      console.error('⚠️ Error al cargar usuario:', error.message);
+    }
 
-    const fullHtml = await engine.render('layout.ejs', {
+    if (!user) {
+      user = {
+        id: req.session.userId,
+        username: req.session.userName || 'Usuario',
+        email: req.session.userEmail || '',
+        role: 'user',
+        plan: req.session.userPlan || 'free'
+      };
+    }
+
+    const data = {
       title: 'Bienvenido | DevCraft Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: user,
       userPlan: res.locals.userPlan || null,
-      body: bodyHtml
-    }, req.templateSets);
+      showModal: showModal, // ✅ Pasar el flag
+      returnTo: '/admin'
+    };
 
+    console.log('📦 Datos enviados a welcome.ejs:', { showModal, username: user.username });
+
+    const bodyHtml = await engine.render('welcome.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
     console.error('❌ Error en welcome:', error.message);

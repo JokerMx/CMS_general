@@ -7,6 +7,12 @@ let pool = null;
  */
 async function initDatabase() {
   try {
+    if (pool) {
+      try {
+        await pool.end();
+      } catch (e) { }
+      pool = null;
+    }
     pool = mysql.createPool({
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT) || 3306,
@@ -23,7 +29,7 @@ async function initDatabase() {
 
     const connection = await pool.getConnection();
     console.log('✅ Conectado a MySQL');
-    
+
     // ==========================================
     // TABLA: users
     // ==========================================
@@ -61,14 +67,15 @@ async function initDatabase() {
     // ==========================================
     await connection.query(`
       CREATE TABLE IF NOT EXISTS config (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL UNIQUE,
-        github_username VARCHAR(100),
-        github_token VARCHAR(255),
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          user_id INT NOT NULL,
+          config_key VARCHAR(100) NOT NULL,
+          config_value TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          UNIQUE KEY unique_user_key (user_id, config_key),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
     console.log('✅ Tabla config verificada');
 
@@ -146,7 +153,7 @@ async function initDatabase() {
     await connection.query(`
       UPDATE users SET role = 'owner' WHERE id = 1 AND role = 'user';
     `);
-    
+
     connection.release();
     console.log('✅ Todas las tablas verificadas, conexión liberada');
     return true;
@@ -167,44 +174,90 @@ function getPool() {
 /**
  * Ejecutar query y liberar conexión automáticamente
  */
-async function executeQuery(sql, params = []) {
-  const pool = getPool();
-  if (!pool) throw new Error('Base de datos no disponible');
-  
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const [result] = await connection.query(sql, params);
-    return result;
-  } catch (error) {
-    throw error;
-  } finally {
-    if (connection) {
-      connection.release();
+/**
+ * Ejecutar query que no devuelve filas, con reintentos
+ */
+async function executeQuery(sql, params = [], retries = 3) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const pool = getPool();
+    if (!pool) {
+      console.log('🔄 Pool no disponible, reintentando...');
+      const { initDatabase } = require('./database');
+      await initDatabase();
+      if (!getPool()) throw new Error('Base de datos no disponible');
+    }
+
+    let connection;
+    try {
+      connection = await getPool().getConnection();
+      const [result] = await connection.query(sql, params);
+      return result;
+    } catch (error) {
+      lastError = error;
+
+      if (error.code === 'ECONNRESET' || error.code === 'PROTOCOL_CONNECTION_LOST' || error.code === 'ETIMEDOUT') {
+        console.log(`⚠️ Intento ${attempt}/${retries} falló: ${error.code}. Reintentando...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 500));
+        continue;
+      }
+
+      throw error;
+    } finally {
+      if (connection) {
+        try { connection.release(); } catch (e) { }
+      }
     }
   }
+
+  throw lastError || new Error('Error en executeQuery');
 }
 
 /**
  * Ejecutar query que devuelve filas
  */
-async function query(sql, params = []) {
-  const pool = getPool();
-  if (!pool) return [[], []];
-  
-  let connection;
-  try {
-    connection = await pool.getConnection();
-    const [rows, fields] = await connection.query(sql, params);
-    return [rows, fields];
-  } catch (error) {
-    console.error('❌ Error en query:', error.message);
-    throw error;
-  } finally {
-    if (connection) {
-      connection.release();
+/**
+ * Ejecutar query con reintentos automáticos
+ */
+async function query(sql, params = [], retries = 3) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const pool = getPool();
+    if (!pool) {
+      // Intentar reconectar
+      console.log('🔄 Pool no disponible, intentando reconectar...');
+      const { initDatabase } = require('./database');
+      await initDatabase();
+      if (!getPool()) return [[], []];
+    }
+
+    let connection;
+    try {
+      connection = await getPool().getConnection();
+      const [rows, fields] = await connection.query(sql, params);
+      return [rows, fields];
+    } catch (error) {
+      lastError = error;
+
+      if (error.code === 'ECONNRESET' || error.code === 'PROTOCOL_CONNECTION_LOST' || error.code === 'ETIMEDOUT') {
+        console.log(`⚠️ Intento ${attempt}/${retries} falló: ${error.code}. Reintentando en ${attempt * 500}ms...`);
+        await new Promise(resolve => setTimeout(resolve, attempt * 500));
+        continue;
+      }
+
+      console.error('❌ Error en query:', error.message);
+      throw error;
+    } finally {
+      if (connection) {
+        try { connection.release(); } catch (e) { }
+      }
     }
   }
+
+  console.error('❌ Todos los reintentos fallaron:', lastError.message);
+  return [[], []];
 }
 
 /**
