@@ -1,0 +1,168 @@
+<!-- ============================================ -->
+<!-- CARRUSEL 3D DE SERVICIOS -->
+<!-- ============================================ -->
+<section id="services" style="padding: 60px 20px 100px; position: relative; overflow: hidden; min-height: 600px;">
+  
+  <div style="position: absolute; inset: 0; background: <%= theme === 'dark' ? 'radial-gradient(circle at center, #0a0f1e, #05080f)' : 'radial-gradient(circle at center, #f0f4ff, #e8ecf5)' %>; z-index: 0;"></div>
+  
+  <div style="position: relative; z-index: 1; text-align: center; margin-bottom: 40px;">
+    <span style="display: inline-block; background: var(--badge-bg); color: var(--accent); padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px; border: 1px solid var(--border);">
+      NUESTROS SERVICIOS
+    </span>
+    <h2 style="font-size: 2.5rem; margin-bottom: 15px; color: var(--text);">Soluciones <span style="background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">interactivas</span></h2>
+    <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+      Haz clic en cualquier módulo para traerlo al frente. Clic en el módulo frontal para ver detalles.
+    </p>
+  </div>
+
+  <div class="scene-3d" style="width: 100%; height: 500px; perspective: 1200px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 1;">
+    <div class="carousel-3d" id="carousel3d" style="position: relative; width: 320px; height: 440px; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+  </div>
+
+  <div style="position: relative; z-index: 1; display: flex; justify-content: center; gap: 25px; margin-top: 20px;">
+    <button id="prevBtn3d" style="width: 50px; height: 50px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--accent); color: var(--accent); font-size: 1.2rem; cursor: pointer; transition: all 0.3s;"
+            onmouseover="this.style.background='var(--accent)'; this.style.color='white'; this.style.transform='scale(1.1)'"
+            onmouseout="this.style.background='var(--card-bg)'; this.style.color='var(--accent)'; this.style.transform='scale(1)'">◀</button>
+    <button id="nextBtn3d" style="width: 50px; height: 50px; border-radius: 50%; background: var(--card-bg); border: 2px solid var(--accent); color: var(--accent); font-size: 1.2rem; cursor: pointer; transition: all 0.3s;"
+            onmouseover="this.style.background='var(--accent)'; this.style.color='white'; this.style.transform='scale(1.1)'"
+            onmouseout="this.style.background='var(--card-bg)'; this.style.color='var(--accent)'; this.style.transform='scale(1)'">▶</button>
+  </div>
+
+  <div style="position: relative; z-index: 1; display: flex; justify-content: center; gap: 8px; margin-top: 20px;" id="dots3d"></div>
+  <div id="info3d" style="position: relative; z-index: 1; text-align: center; margin-top: 15px; font-family: monospace; font-size: 0.85rem; color: var(--accent);"></div>
+</section>
+
+<!-- MODAL 3D -->
+<div id="modal3d" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,8,15,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center;" onclick="closeModal3d(event)">
+  <div id="modal3dContent" style="width: 500px; max-width: 90vw; background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; animation: modal3dIn 0.3s ease;" onclick="event.stopPropagation()"></div>
+</div>
+
+<style>
+  @keyframes modal3dIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .card-3d {
+    position: absolute;
+    width: 300px;
+    height: 420px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text);
+  }
+  .card-3d:hover { transform: scale(1.02) !important; box-shadow: 0 25px 50px rgba(108,92,231,0.3); }
+  .card-3d.focused-3d { box-shadow: 0 25px 50px rgba(108,92,231,0.4) !important; border-color: var(--accent) !important; }
+  .card-header-3d { height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.2rem 1rem 0 1rem; }
+  .card-icon-3d { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .card-title-3d { font-size: 1.3rem; font-weight: 700; text-align: center; }
+  .card-subtitle-3d { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; opacity: 0.7; margin-top: 4px; }
+  .card-body-3d { flex: 1; padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .card-desc-3d { color: var(--text-secondary); font-size: 0.8rem; line-height: 1.45; }
+  .card-stats-3d { display: flex; justify-content: space-between; margin: 0.3rem 0; padding: 0.6rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .stat-3d { text-align: center; flex: 1; }
+  .stat-value-3d { font-size: 1.1rem; font-weight: 700; }
+  .stat-label-3d { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; color: var(--text-secondary); }
+  .card-features-3d { list-style: none; margin-top: 0.3rem; }
+  .card-features-3d li { font-size: 0.7rem; padding: 0.2rem 0; display: flex; align-items: center; gap: 8px; color: var(--text-secondary); }
+  .card-features-3d li::before { content: "▹"; color: var(--accent); }
+  .card-btn-3d { margin-top: 0.5rem; padding: 6px 14px; background: rgba(108,92,231,0.08); border: 1px solid var(--accent); border-radius: 30px; color: var(--accent); font-size: 0.65rem; font-weight: 500; text-align: center; width: fit-content; align-self: center; }
+  .dot-3d { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s; }
+  .dot-3d.active-3d { width: 24px; border-radius: 4px; background: var(--accent); }
+</style>
+
+<script>
+(function() {
+  const services3d = [
+    { name: 'CONSULTORÍA', subtitle: 'Estratégica', icon: '📊', description: 'Análisis y planificación estratégica para transformación digital.', stats: { projects: '+120', clients: '85', satisfaction: '98%' }, features: ['Diagnóstico empresarial', 'Roadmap digital', 'KPIs y métricas', 'Análisis de mercado'], color: '#00B4DB', longDescription: 'Ofrecemos servicios de consultoría estratégica para ayudar a tu empresa a navegar la transformación digital con éxito garantizado.' },
+    { name: 'DISEÑO', subtitle: 'UX/UI Producto', icon: '🎨', description: 'Experiencias digitales centradas en el usuario con altos estándares.', stats: { projects: '+245', clients: '142', satisfaction: '96%' }, features: ['Prototipos interactivos', 'Test de usabilidad', 'Diseño responsive', 'Investigación de usuarios'], color: '#FF6B6B', longDescription: 'Creamos experiencias digitales memorables que conectan con tus usuarios mediante diseño centrado en el humano.' },
+    { name: 'DESARROLLO', subtitle: 'Software a Medida', icon: '⚡', description: 'Soluciones tecnológicas escalables con las últimas tecnologías.', stats: { projects: '+189', clients: '97', satisfaction: '99%' }, features: ['Arquitectura cloud', 'APIs robustas', 'DevOps integrado', 'Microservicios'], color: '#A29BFE', longDescription: 'Desarrollamos software a medida con tecnologías modernas y escalables para impulsar tu negocio.' },
+    { name: 'MARKETING', subtitle: 'Growth Digital', icon: '📈', description: 'Estrategias de marketing basadas en datos para acelerar crecimiento.', stats: { projects: '+310', clients: '178', satisfaction: '95%' }, features: ['SEO/SEM avanzado', 'Analytics 360', 'Automatización', 'Social ads'], color: '#55EFC4', longDescription: 'Impulsamos el crecimiento de tu negocio con estrategias de marketing digital basadas en datos.' },
+    { name: 'DATOS', subtitle: 'Business Intelligence', icon: '📉', description: 'Transformación de datos en insights accionables.', stats: { projects: '+97', clients: '63', satisfaction: '97%' }, features: ['Dashboards en tiempo real', 'Predictive analytics', 'ETL personalizado', 'Data visualization'], color: '#FDCB6E', longDescription: 'Convertimos tus datos en decisiones estratégicas con soluciones de Business Intelligence.' },
+    { name: 'SOPORTE', subtitle: '24/7 Especializado', icon: '🛡️', description: 'Soporte técnico especializado con respuesta en tiempo real.', stats: { projects: '+720', clients: '312', satisfaction: '94%' }, features: ['SLA garantizado', 'Equipo certificado', 'Monitorización proactiva', 'Soporte multicanal'], color: '#E17055', longDescription: 'Brindamos soporte técnico 24/7 con respuesta inmediata y soluciones efectivas.' }
+  ];
+
+  const carousel3d = document.getElementById('carousel3d');
+  const dots3d = document.getElementById('dots3d');
+  const info3d = document.getElementById('info3d');
+  let currentIndex3d = 0;
+  let isAnimating3d = false;
+  const itemCount3d = services3d.length;
+  const radius3d = 350;
+
+  services3d.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot-3d';
+    dot.addEventListener('click', () => rotateTo3d(i));
+    dots3d.appendChild(dot);
+  });
+
+  function updateDots3d() {
+    document.querySelectorAll('.dot-3d').forEach((dot, i) => dot.classList.toggle('active-3d', i === currentIndex3d));
+  }
+
+  function updateInfo3d() {
+    info3d.textContent = services3d[currentIndex3d].name + ' • ' + services3d[currentIndex3d].subtitle;
+  }
+
+  function updateFocus3d() {
+    document.querySelectorAll('.card-3d').forEach((card, i) => card.classList.toggle('focused-3d', i === currentIndex3d));
+  }
+
+  function rotateTo3d(index) {
+    if (isAnimating3d) return;
+    isAnimating3d = true;
+    currentIndex3d = index;
+    carousel3d.style.transform = 'rotateY(' + (-currentIndex3d * (360 / itemCount3d)) + 'deg)';
+    updateDots3d();
+    updateInfo3d();
+    setTimeout(() => { updateFocus3d(); isAnimating3d = false; }, 800);
+  }
+
+  function createCarousel3d() {
+    carousel3d.innerHTML = '';
+    const angleStep = 360 / itemCount3d;
+    services3d.forEach((mod, i) => {
+      const div = document.createElement('div');
+      div.className = 'card-3d';
+      div.style.borderTop = '3px solid ' + mod.color;
+      div.innerHTML = '<div class="card-header-3d"><div class="card-icon-3d">' + mod.icon + '</div><div class="card-title-3d" style="color:' + mod.color + '">' + mod.name + '</div><div class="card-subtitle-3d">' + mod.subtitle + '</div></div><div class="card-body-3d"><div class="card-desc-3d">' + mod.description + '</div><div class="card-stats-3d"><div class="stat-3d"><div class="stat-value-3d" style="color:' + mod.color + '">' + mod.stats.projects + '</div><div class="stat-label-3d">Proyectos</div></div><div class="stat-3d"><div class="stat-value-3d" style="color:' + mod.color + '">' + mod.stats.clients + '</div><div class="stat-label-3d">Clientes</div></div><div class="stat-3d"><div class="stat-value-3d" style="color:' + mod.color + '">' + mod.stats.satisfaction + '</div><div class="stat-label-3d">Satisfacción</div></div></div><ul class="card-features-3d">' + mod.features.slice(0, 3).map(f => '<li>' + f + '</li>').join('') + '</ul><div class="card-btn-3d" style="border-color:' + mod.color + ';color:' + mod.color + '">' + mod.icon + ' Ver detalles →</div></div>';
+      div.style.transform = 'rotateY(' + (i * angleStep) + 'deg) translateZ(' + radius3d + 'px)';
+      div.addEventListener('click', () => { if (i === currentIndex3d) openModal3d(i); else rotateTo3d(i); });
+      carousel3d.appendChild(div);
+    });
+  }
+
+  window.openModal3d = function(index) {
+    const mod = services3d[index];
+    const modal = document.getElementById('modal3d');
+    const content = document.getElementById('modal3dContent');
+    content.innerHTML = '<div style="padding:25px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:2rem;">' + mod.icon + '</span><div><h3 style="color:' + mod.color + ';font-size:1.3rem;">' + mod.name + '</h3><p style="font-size:0.75rem;opacity:0.7;">' + mod.subtitle + '</p></div></div><button onclick="closeModal3d()" style="width:36px;height:36px;border-radius:50%;background:var(--badge-bg);border:1px solid var(--border);color:var(--text);cursor:pointer;font-size:1.1rem;">✕</button></div><div style="padding:25px;"><p style="color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">' + mod.longDescription + '</p><div style="display:flex;gap:15px;margin-bottom:20px;flex-wrap:wrap;"><div style="background:var(--badge-bg);padding:12px 18px;border-radius:12px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:' + mod.color + ';">' + mod.stats.projects + '</div><div style="font-size:0.7rem;opacity:0.7;">Proyectos</div></div><div style="background:var(--badge-bg);padding:12px 18px;border-radius:12px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:' + mod.color + ';">' + mod.stats.clients + '</div><div style="font-size:0.7rem;opacity:0.7;">Clientes</div></div><div style="background:var(--badge-bg);padding:12px 18px;border-radius:12px;text-align:center;"><div style="font-size:1.3rem;font-weight:700;color:' + mod.color + ';">' + mod.stats.satisfaction + '</div><div style="font-size:0.7rem;opacity:0.7;">Satisfacción</div></div></div><ul style="list-style:none;margin-bottom:20px;">' + mod.features.map(f => '<li style="padding:8px 0;border-bottom:1px solid var(--border);color:var(--text-secondary);display:flex;align-items:center;gap:10px;"><span style="color:var(--accent);">▹</span>' + f + '</li>').join('') + '</ul><div style="display:flex;gap:10px;justify-content:flex-end;"><button onclick="closeModal3d()" style="padding:10px 20px;border-radius:30px;background:var(--badge-bg);border:1px solid var(--border);color:var(--text);cursor:pointer;">Cerrar</button><a href="#contact" onclick="closeModal3d()" style="padding:10px 20px;border-radius:30px;background:' + mod.color + ';color:white;text-decoration:none;font-weight:600;">Solicitar →</a></div></div>';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeModal3d = function(e) {
+    if (e && e.target !== document.getElementById('modal3d')) return;
+    document.getElementById('modal3d').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  };
+
+  document.getElementById('prevBtn3d').addEventListener('click', () => rotateTo3d((currentIndex3d - 1 + itemCount3d) % itemCount3d));
+  document.getElementById('nextBtn3d').addEventListener('click', () => rotateTo3d((currentIndex3d + 1) % itemCount3d));
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('modal3d').style.display === 'flex') { if (e.key === 'Escape') closeModal3d(); return; }
+    if (e.key === 'ArrowLeft') rotateTo3d((currentIndex3d - 1 + itemCount3d) % itemCount3d);
+    if (e.key === 'ArrowRight') rotateTo3d((currentIndex3d + 1) % itemCount3d);
+  });
+
+  createCarousel3d();
+  rotateTo3d(0);
+})();
+</script>

@@ -1043,6 +1043,107 @@ app.get('/debug-db', (req, res) => {
   });
 });
 
+
+// ==========================================
+// RUTAS SPA - Secciones individuales
+// ==========================================
+
+app.get('/services', async (req, res) => {
+  try {
+    const data = {
+      title: 'Servicios | DevCraft Studio',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: res.locals.user || null,
+      userPlan: res.locals.userPlan || null
+    };
+    const bodyHtml = await engine.render('services-page.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) {
+    res.redirect('/');
+  }
+});
+
+app.get('/portfolio', async (req, res) => {
+  try {
+    const githubService = await getGitHubService(req);
+    let projects = [];
+    if (githubService) {
+      try { projects = await githubService.getPortfolioProjects(); } catch (e) { }
+    }
+    if (projects.length === 0) {
+      projects = [
+        { id: 1, name: 'ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }] },
+        { id: 2, name: 'react-dashboard', description: 'Dashboard con React', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }] },
+        { id: 3, name: 'ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] }
+      ];
+    }
+    const data = {
+      title: 'Portafolio | DevCraft Studio',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: res.locals.user || null,
+      userPlan: res.locals.userPlan || null,
+      projects: projects
+    };
+    const bodyHtml = await engine.render('portfolio-page.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) {
+    res.redirect('/');
+  }
+});
+
+app.get('/tech-stack', async (req, res) => {
+  try {
+    const githubService = await getGitHubService(req);
+    let techStack = [];
+    if (githubService) {
+      try { techStack = await githubService.getDynamicTechStack(); } catch (e) { }
+    }
+    if (techStack.length === 0) {
+      techStack = [
+        { name: 'JavaScript', level: 95, color: '#f7df1e', icon: '📜', count: 15, stars: 120 },
+        { name: 'TypeScript', level: 88, color: '#3178c6', icon: '🔷', count: 10, stars: 85 },
+        { name: 'React', level: 90, color: '#61dafb', icon: '⚛️', count: 8, stars: 95 },
+        { name: 'Node.js', level: 85, color: '#339933', icon: '💚', count: 12, stars: 70 }
+      ];
+    }
+    const data = {
+      title: 'Tecnologías | DevCraft Studio',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: res.locals.user || null,
+      userPlan: res.locals.userPlan || null,
+      techStack: techStack
+    };
+    const bodyHtml = await engine.render('techstack-page.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) {
+    res.redirect('/');
+  }
+});
+
+app.get('/contact-page', async (req, res) => {
+  try {
+    const data = {
+      title: 'Contacto | DevCraft Studio',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: res.locals.user || null,
+      userPlan: res.locals.userPlan || null
+    };
+    const bodyHtml = await engine.render('contact-page.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) {
+    res.redirect('/');
+  }
+});
+
+
 // ==========================================
 // 404 - SIEMPRE AL FINAL
 // ==========================================
