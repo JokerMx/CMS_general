@@ -32,11 +32,7 @@ app.use(session({
   }
 }));
 app.use('/static', express.static(path.join(__dirname, 'public')));
-
-// Middleware de usuario (carga datos del usuario autenticado)
 app.use(loadUser);
-
-// Middleware de contexto de plantillas
 app.use((req, res, next) => {
   const { sets, theme } = resolveTemplateContext(req);
   req.templateSets = sets;
@@ -50,8 +46,6 @@ app.use((req, res, next) => {
 async function getGitHubService(req) {
   let token = process.env.GITHUB_TOKEN;
   let username = process.env.GITHUB_USERNAME;
-
-  // Si el usuario está autenticado, buscar sus credenciales en la BD
   if (req.session && req.session.userId) {
     try {
       const credentials = await Config.getGitHubCredentials(req.session.userId);
@@ -59,41 +53,13 @@ async function getGitHubService(req) {
         token = credentials.token;
         username = credentials.username;
         console.log('🔑 Usando credenciales de GitHub del usuario (BD)');
-      } else {
-        console.log('🔑 Usando credenciales de GitHub del .env');
       }
     } catch (error) {
       console.error('Error al obtener credenciales de BD:', error.message);
     }
   }
-
-  if (token && username) {
-    return new GitHubService(token, username);
-  }
+  if (token && username) return new GitHubService(token, username);
   return null;
-}
-
-// ==========================================
-// FUNCIÓN AUXILIAR: Validar campos de login
-// ==========================================
-function validateLoginFields(req, res, next) {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.redirect('/login?error=Todos los campos son obligatorios');
-  }
-
-  // Validar formato de email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.redirect('/login?error=Ingresa un email válido');
-  }
-
-  if (password.length < 6) {
-    return res.redirect('/login?error=La contraseña debe tener al menos 6 caracteres');
-  }
-
-  next();
 }
 
 // ==========================================
@@ -113,358 +79,158 @@ function getExampleTechStack(filteredProjects) {
     'AWS': '☁️', 'Kubernetes': '☸️', 'Next.js': '▲', 'Tailwind CSS': '🌊',
     'React Native': '📱', 'Firebase': '🔥', 'Go': '🔵'
   };
-
   const techCount = {};
   filteredProjects.forEach(project => {
-    if (project.language) {
-      techCount[project.language] = (techCount[project.language] || 0) + 1;
-    }
+    if (project.language) techCount[project.language] = (techCount[project.language] || 0) + 1;
     if (project.techBadges) {
       project.techBadges.forEach(badge => {
-        if (badge.name) {
-          techCount[badge.name] = (techCount[badge.name] || 0) + 1;
-        }
+        if (badge.name) techCount[badge.name] = (techCount[badge.name] || 0) + 1;
       });
     }
   });
-
   const total = filteredProjects.length || 1;
   return Object.entries(techCount)
     .map(([name, count]) => ({
-      name,
-      level: Math.min(Math.round((count / total) * 100), 100),
-      count,
-      stars: 0,
-      reposCount: count,
-      color: techColors[name] || '#6c5ce7',
-      icon: icons[name] || '💻',
-      repos: [],
-      percentage: Math.round((count / total) * 100)
+      name, level: Math.min(Math.round((count / total) * 100), 100), count, stars: 0,
+      reposCount: count, color: techColors[name] || '#6c5ce7', icon: icons[name] || '💻',
+      repos: [], percentage: Math.round((count / total) * 100)
     }))
-    .sort((a, b) => b.level - a.level)
-    .slice(0, 12);
+    .sort((a, b) => b.level - a.level).slice(0, 12);
 }
 
 // ==========================================
 // RUTAS DE AUTENTICACIÓN
 // ==========================================
-
-// Página de login
 app.get('/login', isNotAuthenticated, async (req, res) => {
   try {
-    const bodyHtml = await engine.render('login.ejs', {
-      error: req.query.error || null,
-      success: req.query.success || null,
-      email: ''
-    }, req.templateSets);
-
-    const fullHtml = await engine.render('layout.ejs', {
-      title: 'Iniciar Sesión | DevCraft Studio',
-      theme: req.theme,
-      currentYear: new Date().getFullYear(),
-      user: null,
-      userPlan: null,
-      body: bodyHtml
-    }, req.templateSets);
-
+    const bodyHtml = await engine.render('login.ejs', { error: req.query.error || null, success: req.query.success || null, email: '' }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { title: 'Iniciar Sesión | DevCraft Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml }, req.templateSets);
     res.send(fullHtml);
-  } catch (error) {
-    console.error('❌ Error en login:', error.message);
-    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
-  }
+  } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`); }
 });
-// ✅ CORRECTO - Una sola respuesta
+
 app.post('/login', isNotAuthenticated, async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.redirect('/login?error=Todos los campos son obligatorios');
-    }
-
+    if (!email || !password) return res.redirect('/login?error=Todos los campos son obligatorios');
     const user = await User.findByEmail(email);
-    
-    if (!user) {
-      return res.redirect('/login?error=Email o contraseña incorrectos');
-    }
-
+    if (!user) return res.redirect('/login?error=Email o contraseña incorrectos');
     const isValid = await User.verifyPassword(password, user.password);
-    
-    if (!isValid) {
-      return res.redirect('/login?error=Email o contraseña incorrectos');
-    }
-
-    // Guardar datos en sesión
+    if (!isValid) return res.redirect('/login?error=Email o contraseña incorrectos');
     req.session.userId = user.id;
     req.session.userPlan = user.plan || 'free';
     req.session.userEmail = user.email;
     req.session.userName = user.full_name || user.username;
     req.session.justLoggedIn = true;
-
-    // ✅ Guardar sesión y luego redirigir (UNA SOLA RESPUESTA)
     req.session.save((err) => {
-      if (err) {
-        console.error('❌ Error al guardar sesión:', err);
-        return res.redirect('/login?error=Error al iniciar sesión');
-      }
-      
-      User.updateLastLogin(user.id).catch(() => {});
+      if (err) return res.redirect('/login?error=Error al iniciar sesión');
+      User.updateLastLogin(user.id).catch(() => { });
       console.log('✅ Login exitoso:', user.username);
       res.redirect('/welcome');
     });
-    
-  } catch (error) {
-    console.error('❌ Error en login:', error.message);
-    return res.redirect('/login?error=Error al iniciar sesión');
-  }
+  } catch (error) { res.redirect('/login?error=Error al iniciar sesión'); }
 });
 
 app.get('/welcome', isAuthenticated, async (req, res) => {
   try {
-    // ✅ Leer el flag de la sesión
     const showModal = req.session.justLoggedIn === true;
-    req.session.justLoggedIn = false; // Limpiar para que no se muestre de nuevo
-
-    console.log('🎉 showModal:', showModal); // Debug
-
+    req.session.justLoggedIn = false;
     let user = null;
-    try {
-      user = await User.findById(req.session.userId);
-    } catch (error) {
-      console.error('⚠️ Error al cargar usuario:', error.message);
-    }
-
-    if (!user) {
-      user = {
-        id: req.session.userId,
-        username: req.session.userName || 'Usuario',
-        email: req.session.userEmail || '',
-        role: 'user',
-        plan: req.session.userPlan || 'free'
-      };
-    }
-
-    const data = {
-      title: 'Bienvenido | DevCraft Studio',
-      theme: req.theme,
-      currentYear: new Date().getFullYear(),
-      user: user,
-      userPlan: res.locals.userPlan || null,
-      showModal: showModal, // ✅ Pasar el flag
-      returnTo: '/admin'
-    };
-
-    console.log('📦 Datos enviados a welcome.ejs:', { showModal, username: user.username });
-
+    try { user = await User.findById(req.session.userId); } catch (e) { }
+    if (!user) user = { id: req.session.userId, username: req.session.userName || 'Usuario', email: req.session.userEmail || '', role: 'user', plan: req.session.userPlan || 'free' };
+    const data = { title: 'Bienvenido | DevCraft Studio', theme: req.theme, currentYear: new Date().getFullYear(), user, userPlan: res.locals.userPlan || null, showModal, returnTo: '/admin' };
     const bodyHtml = await engine.render('welcome.ejs', data, req.templateSets);
     const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
     res.send(fullHtml);
-  } catch (error) {
-    console.error('❌ Error en welcome:', error.message);
-    res.redirect('/');
-  }
+  } catch (error) { res.redirect('/'); }
 });
 
-// Página de registro
 app.get('/register', isNotAuthenticated, async (req, res) => {
   try {
-    const bodyHtml = await engine.render('register.ejs', {
-      error: req.query.error || null
-    }, req.templateSets);
-
-    const fullHtml = await engine.render('layout.ejs', {
-      title: 'Registro | DevCraft Studio',
-      theme: req.theme,
-      currentYear: new Date().getFullYear(),
-      user: null,
-      userPlan: null,
-      body: bodyHtml
-    }, req.templateSets);
-
+    const bodyHtml = await engine.render('register.ejs', { error: req.query.error || null }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { title: 'Registro | DevCraft Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml }, req.templateSets);
     res.send(fullHtml);
-  } catch (error) {
-    console.error('❌ Error en registro:', error.message);
-    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
-  }
+  } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p>`); }
 });
 
-// Procesar registro
 app.post('/register', isNotAuthenticated, async (req, res) => {
   try {
     const { username, email, password, confirmPassword, fullName } = req.body;
-
-    if (!username || !email || !password || !confirmPassword) {
-      return res.redirect('/register?error=Todos los campos son obligatorios');
-    }
-
-    if (password !== confirmPassword) {
-      return res.redirect('/register?error=Las contraseñas no coinciden');
-    }
-
-    if (password.length < 6) {
-      return res.redirect('/register?error=La contraseña debe tener al menos 6 caracteres');
-    }
-
-    if (username.length < 3) {
-      return res.redirect('/register?error=El nombre de usuario debe tener al menos 3 caracteres');
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.redirect('/register?error=Ingresa un email válido');
-    }
-
-    const existingEmail = await User.findByEmail(email);
-    if (existingEmail) {
-      return res.redirect('/register?error=El email ya está registrado');
-    }
-
-    const existingUsername = await User.findByUsername(username);
-    if (existingUsername) {
-      return res.redirect('/register?error=El nombre de usuario ya está en uso');
-    }
-
+    if (!username || !email || !password || !confirmPassword) return res.redirect('/register?error=Todos los campos son obligatorios');
+    if (password !== confirmPassword) return res.redirect('/register?error=Las contraseñas no coinciden');
+    if (password.length < 6) return res.redirect('/register?error=La contraseña debe tener al menos 6 caracteres');
+    if (username.length < 3) return res.redirect('/register?error=El nombre de usuario debe tener al menos 3 caracteres');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.redirect('/register?error=Ingresa un email válido');
+    if (await User.findByEmail(email)) return res.redirect('/register?error=El email ya está registrado');
+    if (await User.findByUsername(username)) return res.redirect('/register?error=El nombre de usuario ya está en uso');
     await User.create({ username, email, password, fullName });
-
-    console.log(`✅ Registro: ${username} (${email})`);
-    res.redirect('/login?success=Cuenta creada exitosamente. Inicia sesión.');
-  } catch (error) {
-    console.error('❌ Error en registro:', error.message);
-    res.redirect('/register?error=Error al crear la cuenta');
-  }
+    res.redirect('/login?success=Cuenta creada exitosamente');
+  } catch (error) { res.redirect('/register?error=Error al crear la cuenta'); }
 });
 
-// Cerrar sesión
 app.get('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) console.error('Error al cerrar sesión:', err);
-    res.redirect('/login?success=Sesión cerrada correctamente');
-  });
-});
-
-// Perfil del usuario
-app.get('/profile', isAuthenticated, async (req, res) => {
-  try {
-    const user = await User.findById(req.session.userId);
-
-    const bodyHtml = await engine.render('profile.ejs', {
-      user
-    }, req.templateSets);
-
-    const fullHtml = await engine.render('layout.ejs', {
-      title: 'Mi Perfil | DevCraft Studio',
-      theme: req.theme,
-      currentYear: new Date().getFullYear(),
-      user: user,
-      userPlan: res.locals.userPlan || null,
-      body: bodyHtml
-    }, req.templateSets);
-
-    res.send(fullHtml);
-  } catch (error) {
-    console.error('❌ Error en perfil:', error.message);
-    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
-  }
-});
-
-// Actualizar perfil
-app.post('/profile', isAuthenticated, async (req, res) => {
-  try {
-    const { githubUsername, githubToken } = req.body;
-
-    if (githubUsername || githubToken) {
-      await Config.setGitHubCredentials(
-        req.session.userId,
-        githubUsername || null,
-        githubToken || null
-      );
-      console.log(`🔑 Credenciales de GitHub actualizadas para usuario ID: ${req.session.userId}`);
-    }
-
-    res.redirect('/profile?success=Perfil actualizado correctamente');
-  } catch (error) {
-    console.error('❌ Error al actualizar perfil:', error.message);
-    res.redirect('/profile?error=Error al actualizar');
-  }
+  req.session.destroy((err) => { res.redirect('/login?success=Sesión cerrada'); });
 });
 
 // ==========================================
-// RUTAS PRINCIPALES
+// RUTA PRINCIPAL
 // ==========================================
-
-// Página principal - Landing
 app.get('/', async (req, res) => {
   try {
     const githubService = await getGitHubService(req);
-    let profile = null;
-    let projects = [];
+    let profile = null, projects = [];
+    const isAuthenticated = !!(req.session?.userId || res.locals.user?.id);
 
     if (githubService) {
-      try {
-        [profile, projects] = await Promise.all([
-          githubService.getProfileStats(),
-          githubService.getPortfolioProjects()
-        ]);
-        console.log(`✅ GitHub: ${projects.length} proyectos`);
-      } catch (error) {
-        console.error('⚠️ Error GitHub:', error.message);
-      }
+      try { [profile, projects] = await Promise.all([githubService.getProfileStats(), githubService.getPortfolioProjects()]); } catch (e) { }
     }
-
-    // Datos de ejemplo si no hay GitHub
-    if (!profile) {
-      profile = {
-        username: process.env.GITHUB_USERNAME || 'devcraft',
-        name: res.locals.user?.full_name || 'DevCraft Studio',
-        bio: 'Desarrollo de Software Profesional',
-        avatar: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
-        followers: 0, following: 0, totalRepos: 0, totalStars: 0, topLanguages: []
-      };
-    }
-
+    if (!profile) profile = { username: process.env.GITHUB_USERNAME || 'devcraft', name: 'DevCraft Studio', bio: 'Desarrollo de Software Profesional', avatar: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', followers: 0, following: 0, totalRepos: 0, totalStars: 0, topLanguages: [] };
     if (projects.length === 0) {
       projects = [
-        { id: 1, name: 'ecommerce-api', fullName: 'devcraft/ecommerce-api', description: 'API RESTful para e-commerce con Node.js y MongoDB', url: 'https://github.com', language: 'JavaScript', stars: 24, forks: 8, openIssues: 2, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'Node.js', color: '#339933' }, { name: 'MongoDB', color: '#47a248' }, { name: 'Docker', color: '#2496ed' }] },
-        { id: 2, name: 'react-dashboard', fullName: 'devcraft/react-dashboard', description: 'Dashboard con React, TypeScript y gráficos en tiempo real', url: 'https://github.com', language: 'TypeScript', stars: 18, forks: 5, openIssues: 1, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'React', color: '#61dafb' }, { name: 'TypeScript', color: '#3178c6' }, { name: 'GraphQL', color: '#e10098' }] },
-        { id: 3, name: 'ai-chatbot', fullName: 'devcraft/ai-chatbot', description: 'Chatbot con NLP y machine learning en Python', url: 'https://github.com', language: 'Python', stars: 32, forks: 12, openIssues: 3, isPrivate: true, license: 'GPL-3.0', defaultBranch: 'main', techBadges: [{ name: 'Python', color: '#3776ab' }, { name: 'AWS', color: '#ff9900' }, { name: 'Docker', color: '#2496ed' }] },
-        { id: 4, name: 'mobile-app', fullName: 'devcraft/mobile-app', description: 'App móvil con React Native y Firebase', url: 'https://github.com', language: 'JavaScript', stars: 15, forks: 4, openIssues: 0, isPrivate: false, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'React Native', color: '#61dafb' }, { name: 'Firebase', color: '#ffca28' }] },
-        { id: 5, name: 'devops-tools', fullName: 'devcraft/devops-tools', description: 'Herramientas DevOps con Docker y Kubernetes', url: 'https://github.com', language: 'Go', stars: 28, forks: 10, openIssues: 2, isPrivate: false, license: 'Apache-2.0', defaultBranch: 'main', techBadges: [{ name: 'Docker', color: '#2496ed' }, { name: 'Kubernetes', color: '#326ce5' }] },
-        { id: 6, name: 'landing-builder', fullName: 'devcraft/landing-builder', description: 'Constructor de landing pages con Next.js', url: 'https://github.com', language: 'TypeScript', stars: 22, forks: 7, openIssues: 1, isPrivate: true, license: 'MIT', defaultBranch: 'main', techBadges: [{ name: 'Next.js', color: '#000000' }, { name: 'Tailwind CSS', color: '#06b6d4' }] }
+        { id: 1, name: 'ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }] },
+        { id: 2, name: 'react-dashboard', description: 'Dashboard con React', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }] },
+        { id: 3, name: 'ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] }
       ];
     }
 
-    // Datos del usuario para el header
-    const userPlan = res.locals.userPlan || { id: 'free', name: 'Gratis', icon: '🆓', maxProjects: 2, color: '#6c757d', gradient: 'linear-gradient(135deg, #6c757d, #adb5bd)' };
-    const selectedProjects = res.locals.selectedProjects || [];
+    // ✅ UNA SOLA DECLARACIÓN de selectedProjects
+    let selectedProjects = [];
 
-    // Filtrar proyectos según plan
-    const filteredProjects = planService.filterProjectsByPlan(projects, userPlan.id, selectedProjects);
-    console.log(`📦 Mostrando ${filteredProjects.length} proyectos (Plan: ${userPlan.name})`);
+    const userId = req.session?.userId || res.locals.user?.id;
+    if (userId) {
+      try {
+        const dbUser = await User.findById(userId);
+        if (dbUser && dbUser.selected_projects) {
+          selectedProjects = typeof dbUser.selected_projects === 'string' ? JSON.parse(dbUser.selected_projects) : dbUser.selected_projects;
+        }
+        console.log('📦 BD selectedProjects:', JSON.stringify(selectedProjects));
+      } catch (e) { }
+    }
+    console.log('📦 BD selectedProjects:', JSON.stringify(selectedProjects));
+    console.log('📦 userId:', userId);
+    console.log('📦 isAuthenticated:', isAuthenticated);
+    let filteredProjects;
+    if (isAuthenticated && selectedProjects.length > 0) {
+      filteredProjects = projects.filter(p => selectedProjects.includes(p.name));
+      console.log('📦 ' + filteredProjects.length + ' proyectos SELECCIONADOS: ' + selectedProjects.join(', '));
+    } else if (isAuthenticated) {
+      filteredProjects = projects.slice(0, 2);
+      console.log('📦 Plan Gratis: primeros 2 (sin selección)');
+    } else {
+      filteredProjects = projects;
+      console.log('📦 Visitante: mostrando todos');
+    }
 
-    // Stack tecnológico
     let techStack = [];
     if (githubService && filteredProjects.length > 0) {
-      try {
-        techStack = await githubService.getDynamicTechStack();
-      } catch (e) {
-        techStack = getExampleTechStack(filteredProjects);
-      }
-    } else if (filteredProjects.length > 0) {
-      techStack = getExampleTechStack(filteredProjects);
-    }
-    console.log(`📊 Stack: ${techStack.length} tecnologías`);
+      try { techStack = await githubService.getDynamicTechStack(); } catch (e) { techStack = getExampleTechStack(filteredProjects); }
+    } else if (filteredProjects.length > 0) { techStack = getExampleTechStack(filteredProjects); }
+
+    const userPlan = res.locals.userPlan || { id: 'free', name: 'Gratis', icon: '🆓', maxProjects: 2, color: '#6c757d', gradient: 'linear-gradient(135deg, #6c757d, #adb5bd)' };
 
     const data = {
-      title: 'DevCraft Studio | Desarrollo de Software Profesional',
-      theme: req.theme,
-      currentYear: new Date().getFullYear(),
-      user: res.locals.user || null,
-      userPlan: userPlan,
-      profile,
-      projects: filteredProjects,
-      allProjects: projects,
-      techStack,
-      selectedProjects,
+      title: 'DevCraft Studio | Desarrollo de Software Profesional', theme: req.theme, currentYear: new Date().getFullYear(),
+      user: res.locals.user || null, userPlan, profile, projects: filteredProjects, allProjects: projects, techStack, selectedProjects, isAuthenticated,
       plans: planService.getAllPlans(),
       services: [
         { icon: '🖥️', title: 'Desarrollo Web', description: 'Aplicaciones web modernas con React, Vue, Angular y Node.js.', features: ['SPA/PWA', 'E-commerce', 'Dashboards'] },
@@ -475,15 +241,10 @@ app.get('/', async (req, res) => {
         { icon: '🎯', title: 'Consultoría Tech', description: 'Asesoría en arquitectura de software y migraciones.', features: ['Auditorías', 'Roadmaps', 'MVP'] }
       ]
     };
-
     const bodyHtml = await engine.render('home.ejs', data, req.templateSets);
     const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
     res.send(fullHtml);
-
-  } catch (error) {
-    console.error('❌ Error:', error.message);
-    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
-  }
+  } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`); }
 });
 
 // Página de planes
@@ -694,26 +455,26 @@ app.post('/api/projects/selection', isAuthenticated, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Formato inválido' });
     }
 
-    const user = await User.findById(req.session.userId);
-    const planLimits = { free: 2, medium: 5, premium: 10, platinum: Infinity };
-    const maxProjects = planLimits[user.plan] || 2;
+    // Guardar en BD
+    const saved = await User.updateSelectedProjects(req.session.userId, projects);
 
-    if (projects.length > maxProjects && maxProjects !== Infinity) {
-      return res.status(400).json({
-        success: false,
-        error: `Tu plan permite máximo ${maxProjects} proyectos. Seleccionaste ${projects.length}.`
-      });
+    if (!saved) {
+      return res.status(500).json({ success: false, error: 'Error al guardar en BD' });
     }
 
-    await User.updateSelectedProjects(req.session.userId, projects);
+    // Actualizar la sesión también
+    req.session.selectedProjects = projects;
 
     console.log(`📦 Proyectos guardados: ${projects.length}`);
+    console.log(`   Proyectos: ${projects.join(', ')}`);
+
     res.json({
       success: true,
       message: `${projects.length} proyectos guardados correctamente.`,
       selected: projects
     });
   } catch (error) {
+    console.error('❌ Error:', error.message);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -801,29 +562,57 @@ app.get('/api/section/services', async (req, res) => {
 });
 
 // Portfolio section
-app.get('/api/section/portfolio', async (req, res) => {
+app.get('/portfolio', async (req, res) => {
   try {
     const githubService = await getGitHubService(req);
     let projects = [];
+    const isAuthenticated = !!(req.session?.userId || res.locals.user?.id);
+    
     if (githubService) {
       try { projects = await githubService.getPortfolioProjects(); } catch (e) { }
     }
     if (projects.length === 0) {
       projects = [
         { id: 1, name: 'ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }] },
-        { id: 2, name: 'react-dashboard', description: 'Dashboard con React y TypeScript', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }] },
+        { id: 2, name: 'react-dashboard', description: 'Dashboard con React', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }] },
         { id: 3, name: 'ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] }
       ];
     }
-    const userPlan = res.locals.userPlan || { id: 'free', maxProjects: 2 };
-    const selectedProjects = res.locals.selectedProjects || [];
-    const planService = new PlanService();
-    const filteredProjects = planService.filterProjectsByPlan(projects, userPlan.id, selectedProjects);
 
-    const html = await engine.render('partials/portfolio.ejs', { projects: filteredProjects, theme: req.theme }, req.templateSets);
-    res.send(html);
+    // ✅ Aplicar mismo filtro que en la ruta principal
+    let selectedProjects = [];
+    const userId = req.session?.userId || res.locals.user?.id;
+    if (userId) {
+      try {
+        const dbUser = await User.findById(userId);
+        if (dbUser && dbUser.selected_projects) {
+          selectedProjects = typeof dbUser.selected_projects === 'string' ? JSON.parse(dbUser.selected_projects) : dbUser.selected_projects;
+        }
+      } catch (e) {}
+    }
+
+    let filteredProjects;
+    if (isAuthenticated && selectedProjects.length > 0) {
+      filteredProjects = projects.filter(p => selectedProjects.includes(p.name));
+    } else if (isAuthenticated) {
+      filteredProjects = projects.slice(0, 2);
+    } else {
+      filteredProjects = projects;
+    }
+
+    const data = {
+      title: 'Portafolio | DevCraft Studio',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: res.locals.user || null,
+      userPlan: res.locals.userPlan || null,
+      projects: filteredProjects    // ✅ Proyectos filtrados
+    };
+    const bodyHtml = await engine.render('portfolio-page.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    res.send(fullHtml);
   } catch (error) {
-    res.status(500).send(`<p>Error: ${error.message}</p>`);
+    res.redirect('/');
   }
 });
 

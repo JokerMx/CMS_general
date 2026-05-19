@@ -8,7 +8,7 @@ async function loadUser(req, res, next) {
   if (req.session && req.session.userId) {
     try {
       const user = await User.findById(req.session.userId);
-      
+
       if (user) {
         res.locals.user = {
           id: user.id,
@@ -31,7 +31,7 @@ async function loadUser(req, res, next) {
         const { PlanService } = require('../planService');
         const planService = new PlanService();
         const plan = planService.getPlan(user.plan || 'free');
-        
+
         res.locals.userPlan = {
           id: user.plan || 'free',
           name: plan.name,
@@ -42,9 +42,19 @@ async function loadUser(req, res, next) {
         };
 
         if (user.selected_projects) {
-          res.locals.selectedProjects = typeof user.selected_projects === 'string'
-            ? JSON.parse(user.selected_projects)
-            : user.selected_projects;
+          try {
+            const parsed = typeof user.selected_projects === 'string'
+              ? JSON.parse(user.selected_projects)
+              : user.selected_projects;
+
+            res.locals.selectedProjects = Array.isArray(parsed) ? parsed : [];
+            console.log(`📦 Usuario ${user.username}: ${res.locals.selectedProjects.length} proyectos seleccionados`);
+          } catch (e) {
+            console.error('❌ Error al parsear selected_projects:', e.message);
+            res.locals.selectedProjects = [];
+          }
+        } else {
+          res.locals.selectedProjects = [];
         }
       }
     } catch (error) {

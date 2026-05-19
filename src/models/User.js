@@ -6,31 +6,31 @@ class User {
   // ========== BÚSQUEDAS ==========
 
   static async findByEmail(email) {
-  if (!email) return null;
-  
-  // Intentar hasta 3 veces
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const pool = getPool();
-      if (!pool) {
-        console.log('🔄 findByEmail: Pool no disponible, esperando...');
-        await new Promise(r => setTimeout(r, 1000));
-        continue;
-      }
-      
-      const [rows] = await query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
-      return rows[0] || null;
-    } catch (error) {
-      console.error(`❌ findByEmail intento ${attempt}/3:`, error.message);
-      if (attempt < 3) {
-        await new Promise(r => setTimeout(r, 500 * attempt));
+    if (!email) return null;
+
+    // Intentar hasta 3 veces
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const pool = getPool();
+        if (!pool) {
+          console.log('🔄 findByEmail: Pool no disponible, esperando...');
+          await new Promise(r => setTimeout(r, 1000));
+          continue;
+        }
+
+        const [rows] = await query('SELECT * FROM users WHERE email = ?', [email.toLowerCase().trim()]);
+        return rows[0] || null;
+      } catch (error) {
+        console.error(`❌ findByEmail intento ${attempt}/3:`, error.message);
+        if (attempt < 3) {
+          await new Promise(r => setTimeout(r, 500 * attempt));
+        }
       }
     }
+
+    console.error('❌ findByEmail: Todos los intentos fallaron');
+    return null;
   }
-  
-  console.error('❌ findByEmail: Todos los intentos fallaron');
-  return null;
-}
 
 
   static async findByUsername(username) {
@@ -194,9 +194,25 @@ class User {
   }
 
   static async updateSelectedProjects(userId, projects) {
-    try { await executeQuery('UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?', [JSON.stringify(projects), userId]); } catch (error) { }
-  }
+    try {
+      const pool = getPool();
+      if (!pool) {
+        console.error('❌ updateSelectedProjects: Pool no disponible');
+        return false;
+      }
 
+      const result = await pool.query(
+        'UPDATE users SET selected_projects = ?, updated_at = NOW() WHERE id = ?',
+        [JSON.stringify(projects), userId]
+      );
+
+      console.log(`✅ Proyectos actualizados en BD para usuario ${userId}: ${projects.length} proyectos`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error en updateSelectedProjects:', error.message);
+      return false;
+    }
+  }
   static async getSelectedProjects(userId) {
     try {
       const [rows] = await query('SELECT selected_projects FROM users WHERE id = ?', [userId]);

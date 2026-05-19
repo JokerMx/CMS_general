@@ -81,7 +81,7 @@ class PlanService {
   getUserPlan(req) {
     // Si el middleware loadUser ya asignó userPlan, usarlo
     if (req.userPlan) return req.userPlan;
-    
+
     // Si no, obtener desde sesión o query
     const planId = req.session?.userPlan || req.query.plan || 'free';
     return {
@@ -90,19 +90,18 @@ class PlanService {
     };
   }
 
-  filterProjectsByPlan(projects, planId, selectedProjects = null) {
-    const plan = this.getPlan(planId);
-    
-    if (selectedProjects && Array.isArray(selectedProjects) && selectedProjects.length > 0) {
-      const selectedSet = new Set(selectedProjects);
-      return projects.filter(p => selectedSet.has(p.name));
+  filterProjectsByPlan(projects, planId, selectedProjects = []) {
+    // Si hay proyectos seleccionados, filtrar por esos nombres
+    if (selectedProjects.length > 0) {
+      const filtered = projects.filter(p => selectedProjects.includes(p.name));
+      return filtered;
     }
-    
+
+    // Si no, limitar por cantidad del plan
+    const plan = this.getPlan(planId);
     if (plan.maxProjects === Infinity) return projects;
-    
     return projects.slice(0, plan.maxProjects);
   }
-
   getSelectedProjects(req) {
     try {
       const selected = req.cookies?.selectedProjects;
