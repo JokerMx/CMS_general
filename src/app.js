@@ -38,7 +38,7 @@ app.use(async (req, res, next) => {
   const { sets, theme } = resolveTemplateContext(req);
   req.templateSets = sets;
   req.theme = theme;
-  
+
   try {
     res.locals.siteSettings = await Config.getSiteSettings();
     console.log('📋 siteSettings cargados:', Object.keys(res.locals.siteSettings).length, 'claves');
@@ -46,7 +46,7 @@ app.use(async (req, res, next) => {
     res.locals.siteSettings = {};
     console.error('Error al cargar siteSettings:', e.message);
   }
-  
+
   next();
 });
 
@@ -114,7 +114,7 @@ function getExampleTechStack(filteredProjects) {
 app.get('/login', isNotAuthenticated, async (req, res) => {
   try {
     const bodyHtml = await engine.render('login.ejs', { error: req.query.error || null, success: req.query.success || null, email: '' }, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { title: 'Iniciar Sesión | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml, siteSettings: res.locals.siteSettings || {}   }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { title: 'Iniciar Sesión | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`); }
 });
@@ -500,7 +500,24 @@ app.get('/api/projects/selection', isAuthenticated, async (req, res) => {
   }
 });
 
+// API para guardar site_settings (redes sociales)
+app.post('/api/site-settings', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const pool = require('./database').getPool();
+    if (!pool) return res.json({ success: false, error: 'BD no disponible' });
 
+    for (const [key, value] of Object.entries(req.body)) {
+      await pool.query(
+        'INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?',
+        [key, value, value]
+      );
+    }
+
+    res.json({ success: true, message: 'Configuración guardada' });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
 
 // ==========================================
 // CONTACTO
@@ -579,7 +596,7 @@ app.get('/portfolio', async (req, res) => {
     const githubService = await getGitHubService(req);
     let projects = [];
     const isAuthenticated = !!(req.session?.userId || res.locals.user?.id);
-    
+
     if (githubService) {
       try { projects = await githubService.getPortfolioProjects(); } catch (e) { }
     }
@@ -600,7 +617,7 @@ app.get('/portfolio', async (req, res) => {
         if (dbUser && dbUser.selected_projects) {
           selectedProjects = typeof dbUser.selected_projects === 'string' ? JSON.parse(dbUser.selected_projects) : dbUser.selected_projects;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     let filteredProjects;
@@ -621,7 +638,7 @@ app.get('/portfolio', async (req, res) => {
       projects: filteredProjects    // ✅ Proyectos filtrados
     };
     const bodyHtml = await engine.render('portfolio-page.ejs', data, req.templateSets);
-const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);    res.send(fullHtml);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets); res.send(fullHtml);
 
   } catch (error) {
     res.redirect('/');
@@ -944,6 +961,31 @@ app.get('/contact-page', async (req, res) => {
   }
 });
 
+// API para cargar solo el contenido de usuarios
+app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const { users, total, totalPages } = await User.findAll({
+      page, limit: 15,
+      search: req.query.search || '',
+      role: req.query.role || '',
+      plan: req.query.plan || ''
+    });
+    const roleCounts = await User.countByRole();
+
+    const data = {
+      users, roleCounts,
+      pagination: { page, total, totalPages, search: req.query.search || '', role: req.query.role || '', plan: req.query.plan || '' },
+      user: res.locals.user,
+      theme: req.theme
+    };
+
+    const html = await engine.render('admin/users.ejs', data, req.templateSets);
+    res.send(html);
+  } catch (error) {
+    res.status(500).send(`<p>Error: ${error.message}</p>`);
+  }
+});
 
 // ==========================================
 // 404 - SIEMPRE AL FINAL
