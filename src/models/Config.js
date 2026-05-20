@@ -86,6 +86,20 @@ class Config {
     await this.set(userId, 'github_token', token);
     return true;
   }
-}
 
+  /**
+   * Obtener todas las configuraciones del sitio
+   */
+  static async getSiteSettings() {
+    const pool = getPool();
+    if (!pool) return {};
+
+    const [rows] = await pool.query('SELECT setting_key, setting_value FROM site_settings');
+    const settings = {};
+    rows.forEach(row => {
+      settings[row.setting_key] = row.setting_value;
+    });
+    return settings;
+  }
+}
 module.exports = Config;

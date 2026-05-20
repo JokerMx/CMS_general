@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'devcraft_secret_key_2026',
+  secret: process.env.SESSION_SECRET || 'Devfree_secret_key_2026',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -33,10 +33,20 @@ app.use(session({
 }));
 app.use('/static', express.static(path.join(__dirname, 'public')));
 app.use(loadUser);
-app.use((req, res, next) => {
+// Middleware de contexto de plantillas
+app.use(async (req, res, next) => {
   const { sets, theme } = resolveTemplateContext(req);
   req.templateSets = sets;
   req.theme = theme;
+  
+  try {
+    res.locals.siteSettings = await Config.getSiteSettings();
+    console.log('📋 siteSettings cargados:', Object.keys(res.locals.siteSettings).length, 'claves');
+  } catch (e) {
+    res.locals.siteSettings = {};
+    console.error('Error al cargar siteSettings:', e.message);
+  }
+  
   next();
 });
 
@@ -104,7 +114,7 @@ function getExampleTechStack(filteredProjects) {
 app.get('/login', isNotAuthenticated, async (req, res) => {
   try {
     const bodyHtml = await engine.render('login.ejs', { error: req.query.error || null, success: req.query.success || null, email: '' }, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { title: 'Iniciar Sesión | DevCraft Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { title: 'Iniciar Sesión | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml, siteSettings: res.locals.siteSettings || {}   }, req.templateSets);
     res.send(fullHtml);
   } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`); }
 });
@@ -138,9 +148,9 @@ app.get('/welcome', isAuthenticated, async (req, res) => {
     let user = null;
     try { user = await User.findById(req.session.userId); } catch (e) { }
     if (!user) user = { id: req.session.userId, username: req.session.userName || 'Usuario', email: req.session.userEmail || '', role: 'user', plan: req.session.userPlan || 'free' };
-    const data = { title: 'Bienvenido | DevCraft Studio', theme: req.theme, currentYear: new Date().getFullYear(), user, userPlan: res.locals.userPlan || null, showModal, returnTo: '/admin' };
+    const data = { title: 'Bienvenido | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user, userPlan: res.locals.userPlan || null, showModal, returnTo: '/admin' };
     const bodyHtml = await engine.render('welcome.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) { res.redirect('/'); }
 });
@@ -148,7 +158,7 @@ app.get('/welcome', isAuthenticated, async (req, res) => {
 app.get('/register', isNotAuthenticated, async (req, res) => {
   try {
     const bodyHtml = await engine.render('register.ejs', { error: req.query.error || null }, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { title: 'Registro | DevCraft Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { title: 'Registro | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml }, req.templateSets);
     res.send(fullHtml);
   } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p>`); }
 });
@@ -184,7 +194,7 @@ app.get('/', async (req, res) => {
     if (githubService) {
       try { [profile, projects] = await Promise.all([githubService.getProfileStats(), githubService.getPortfolioProjects()]); } catch (e) { }
     }
-    if (!profile) profile = { username: process.env.GITHUB_USERNAME || 'devcraft', name: 'DevCraft Studio', bio: 'Desarrollo de Software Profesional', avatar: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', followers: 0, following: 0, totalRepos: 0, totalStars: 0, topLanguages: [] };
+    if (!profile) profile = { username: process.env.GITHUB_USERNAME || 'Devfree', name: 'Devfree Studio', bio: 'Desarrollo de Software Profesional', avatar: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', followers: 0, following: 0, totalRepos: 0, totalStars: 0, topLanguages: [] };
     if (projects.length === 0) {
       projects = [
         { id: 1, name: 'ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }] },
@@ -229,7 +239,7 @@ app.get('/', async (req, res) => {
     const userPlan = res.locals.userPlan || { id: 'free', name: 'Gratis', icon: '🆓', maxProjects: 2, color: '#6c757d', gradient: 'linear-gradient(135deg, #6c757d, #adb5bd)' };
 
     const data = {
-      title: 'DevCraft Studio | Desarrollo de Software Profesional', theme: req.theme, currentYear: new Date().getFullYear(),
+      title: 'Devfree Studio | Desarrollo de Software Profesional', theme: req.theme, currentYear: new Date().getFullYear(),
       user: res.locals.user || null, userPlan, profile, projects: filteredProjects, allProjects: projects, techStack, selectedProjects, isAuthenticated,
       plans: planService.getAllPlans(),
       services: [
@@ -242,7 +252,7 @@ app.get('/', async (req, res) => {
       ]
     };
     const bodyHtml = await engine.render('home.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`); }
 });
@@ -258,12 +268,13 @@ app.get('/plans', async (req, res) => {
     }, req.templateSets);
 
     const fullHtml = await engine.render('layout.ejs', {
-      title: 'Planes | DevCraft Studio',
+      title: 'Planes | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
       userPlan: userPlan,
-      body: bodyHtml
+      body: bodyHtml,
+      siteSettings: res.locals.siteSettings || {}
     }, req.templateSets);
 
     res.send(fullHtml);
@@ -342,11 +353,11 @@ app.get('/admin', isAuthenticated, async (req, res) => {
 
     if (allProjects.length === 0) {
       allProjects = [
-        { id: 1, name: 'ecommerce-api', fullName: 'devcraft/ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }, { name: 'MongoDB', color: '#47a248' }] },
-        { id: 2, name: 'react-dashboard', fullName: 'devcraft/react-dashboard', description: 'Dashboard con React y TypeScript', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }, { name: 'TypeScript', color: '#3178c6' }] },
-        { id: 3, name: 'ai-chatbot', fullName: 'devcraft/ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] },
-        { id: 4, name: 'mobile-app', fullName: 'devcraft/mobile-app', description: 'App móvil', url: '#', language: 'JavaScript', stars: 15, forks: 4, isPrivate: false, techBadges: [{ name: 'React Native', color: '#61dafb' }] },
-        { id: 5, name: 'devops-tools', fullName: 'devcraft/devops-tools', description: 'Herramientas DevOps', url: '#', language: 'Go', stars: 28, forks: 10, isPrivate: false, techBadges: [{ name: 'Docker', color: '#2496ed' }] }
+        { id: 1, name: 'ecommerce-api', fullName: 'Devfree/ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }, { name: 'MongoDB', color: '#47a248' }] },
+        { id: 2, name: 'react-dashboard', fullName: 'Devfree/react-dashboard', description: 'Dashboard con React y TypeScript', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }, { name: 'TypeScript', color: '#3178c6' }] },
+        { id: 3, name: 'ai-chatbot', fullName: 'Devfree/ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] },
+        { id: 4, name: 'mobile-app', fullName: 'Devfree/mobile-app', description: 'App móvil', url: '#', language: 'JavaScript', stars: 15, forks: 4, isPrivate: false, techBadges: [{ name: 'React Native', color: '#61dafb' }] },
+        { id: 5, name: 'devops-tools', fullName: 'Devfree/devops-tools', description: 'Herramientas DevOps', url: '#', language: 'Go', stars: 28, forks: 10, isPrivate: false, techBadges: [{ name: 'Docker', color: '#2496ed' }] }
       ];
     }
 
@@ -365,7 +376,7 @@ app.get('/admin', isAuthenticated, async (req, res) => {
       : [];
 
     const data = {
-      title: 'Panel de Administración | DevCraft Studio',
+      title: 'Panel de Administración | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       allProjects,
@@ -379,7 +390,8 @@ app.get('/admin', isAuthenticated, async (req, res) => {
       ...data,
       user: res.locals.user,
       userPlan: res.locals.userPlan,
-      body: bodyHtml
+      body: bodyHtml,
+      siteSettings: res.locals.siteSettings || {}
     }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
@@ -531,8 +543,8 @@ app.get('/api/section/hero', async (req, res) => {
     }
     if (!profile) {
       profile = {
-        username: process.env.GITHUB_USERNAME || 'devcraft',
-        name: 'DevCraft Studio',
+        username: process.env.GITHUB_USERNAME || 'Devfree',
+        name: 'Devfree Studio',
         totalRepos: 0, totalStars: 0, followers: 0
       };
     }
@@ -601,7 +613,7 @@ app.get('/portfolio', async (req, res) => {
     }
 
     const data = {
-      title: 'Portafolio | DevCraft Studio',
+      title: 'Portafolio | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
@@ -609,8 +621,8 @@ app.get('/portfolio', async (req, res) => {
       projects: filteredProjects    // ✅ Proyectos filtrados
     };
     const bodyHtml = await engine.render('portfolio-page.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
-    res.send(fullHtml);
+const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);    res.send(fullHtml);
+
   } catch (error) {
     res.redirect('/');
   }
@@ -666,7 +678,7 @@ app.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
     const roleCounts = await User.countByRole();
 
     const data = {
-      title: 'Gestión de Usuarios | DevCraft Studio',
+      title: 'Gestión de Usuarios | Devfree Studio',
       theme: req.theme, currentYear: new Date().getFullYear(),
       user: res.locals.user, userPlan: res.locals.userPlan,
       users, pagination: { page, total, totalPages, search: req.query.search || '', role: req.query.role || '', plan: req.query.plan || '' },
@@ -674,7 +686,7 @@ app.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
     };
 
     const bodyHtml = await engine.render('admin/users.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
     res.status(500).send(`<h1>Error</h1><p>${error.message}</p>`);
@@ -684,13 +696,13 @@ app.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
 // Formulario crear usuario
 app.get('/admin/users/create', isAuthenticated, isOwner, async (req, res) => {
   const data = {
-    title: 'Crear Usuario | DevCraft Studio',
+    title: 'Crear Usuario | Devfree Studio',
     theme: req.theme, currentYear: new Date().getFullYear(),
     user: res.locals.user, userPlan: res.locals.userPlan,
     formUser: {}, errors: {}, isEdit: false
   };
   const bodyHtml = await engine.render('admin/user-form.ejs', data, req.templateSets);
-  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
   res.send(fullHtml);
 });
 
@@ -713,7 +725,7 @@ app.post('/admin/users/create', isAuthenticated, isOwner, async (req, res) => {
         errors, isEdit: false
       };
       const bodyHtml = await engine.render('admin/user-form.ejs', data, req.templateSets);
-      const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+      const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
       return res.send(fullHtml);
     }
 
@@ -734,7 +746,7 @@ app.get('/admin/users/:id/edit', isAuthenticated, canEditUser, async (req, res) 
     formUser, errors: {}, isEdit: true
   };
   const bodyHtml = await engine.render('admin/user-form.ejs', data, req.templateSets);
-  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
   res.send(fullHtml);
 });
 
@@ -757,12 +769,12 @@ app.get('/admin/users/:id', isAuthenticated, isAdmin, async (req, res) => {
   const detailUser = await User.findById(req.params.id);
   if (!detailUser) return res.redirect('/admin/users');
   const data = {
-    title: `${detailUser.username} | DevCraft Studio`,
+    title: `${detailUser.username} | Devfree Studio`,
     theme: req.theme, currentYear: new Date().getFullYear(),
     user: res.locals.user, userPlan: res.locals.userPlan, detailUser
   };
   const bodyHtml = await engine.render('admin/user-detail.ejs', data, req.templateSets);
-  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
   res.send(fullHtml);
 });
 
@@ -783,12 +795,12 @@ app.post('/admin/users/:id/delete', isAuthenticated, isOwner, async (req, res) =
 app.get('/profile', isAuthenticated, async (req, res) => {
   const profileUser = await User.findById(req.session.userId);
   const data = {
-    title: 'Mi Perfil | DevCraft Studio',
+    title: 'Mi Perfil | Devfree Studio',
     theme: req.theme, currentYear: new Date().getFullYear(),
     user: res.locals.user, userPlan: res.locals.userPlan, profileUser
   };
   const bodyHtml = await engine.render('profile.ejs', data, req.templateSets);
-  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
   res.send(fullHtml);
 });
 
@@ -800,7 +812,7 @@ app.get('/profile/edit', isAuthenticated, async (req, res) => {
     formUser, errors: {}, isOwnProfile: true
   };
   const bodyHtml = await engine.render('edit-profile.ejs', data, req.templateSets);
-  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+  const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
   res.send(fullHtml);
 });
 
@@ -840,14 +852,14 @@ app.get('/debug-db', (req, res) => {
 app.get('/services', async (req, res) => {
   try {
     const data = {
-      title: 'Servicios | DevCraft Studio',
+      title: 'Servicios | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
       userPlan: res.locals.userPlan || null
     };
     const bodyHtml = await engine.render('services-page.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
     res.redirect('/');
@@ -869,7 +881,7 @@ app.get('/portfolio', async (req, res) => {
       ];
     }
     const data = {
-      title: 'Portafolio | DevCraft Studio',
+      title: 'Portafolio | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
@@ -877,7 +889,7 @@ app.get('/portfolio', async (req, res) => {
       projects: projects
     };
     const bodyHtml = await engine.render('portfolio-page.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
     res.redirect('/');
@@ -900,7 +912,7 @@ app.get('/tech-stack', async (req, res) => {
       ];
     }
     const data = {
-      title: 'Tecnologías | DevCraft Studio',
+      title: 'Tecnologías | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
@@ -908,7 +920,7 @@ app.get('/tech-stack', async (req, res) => {
       techStack: techStack
     };
     const bodyHtml = await engine.render('techstack-page.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
     res.redirect('/');
@@ -918,14 +930,14 @@ app.get('/tech-stack', async (req, res) => {
 app.get('/contact-page', async (req, res) => {
   try {
     const data = {
-      title: 'Contacto | DevCraft Studio',
+      title: 'Contacto | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
       userPlan: res.locals.userPlan || null
     };
     const bodyHtml = await engine.render('contact-page.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml }, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
     res.redirect('/');
@@ -944,12 +956,13 @@ app.use(async (req, res) => {
     }, req.templateSets);
 
     const fullHtml = await engine.render('layout.ejs', {
-      title: '404 - No encontrado | DevCraft Studio',
+      title: '404 - No encontrado | Devfree Studio',
       theme: req.theme,
       currentYear: new Date().getFullYear(),
       user: res.locals.user || null,
       userPlan: res.locals.userPlan || null,
-      body: bodyHtml
+      body: bodyHtml,
+      siteSettings: res.locals.siteSettings || {}
     }, req.templateSets);
 
     res.status(404).send(fullHtml);
@@ -983,7 +996,7 @@ async function start() {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`\n╔══════════════════════════════════════════════╗`);
-    console.log(`║   🚀 DevCraft Studio                         ║`);
+    console.log(`║   🚀 Devfree Studio                         ║`);
     console.log(`║   Servidor: http://localhost:${PORT}             ║`);
     console.log(`║   Login:    http://localhost:${PORT}/login       ║`);
     console.log(`║   Registro: http://localhost:${PORT}/register    ║`);

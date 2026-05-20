@@ -16,7 +16,7 @@ async function initDatabase() {
     pool = mysql.createPool({
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT) || 3306,
-      database: process.env.DB_NAME || 'devcraft',
+      database: process.env.DB_NAME || 'Devfree',
       user: process.env.DB_USER || 'root',
       password: process.env.DB_PASS || '',
       waitForConnections: true,
@@ -139,9 +139,9 @@ async function initDatabase() {
     // ==========================================
     await connection.query(`
       INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
-      ('site_name', 'DevCraft Studio'),
+      ('site_name', 'Devfree Studio'),
       ('site_description', 'Desarrollo de Software Profesional'),
-      ('contact_email', 'hello@devcraftstudio.dev'),
+      ('contact_email', 'hello@Devfreestudio.dev'),
       ('contact_phone', '+1 (555) 123-4567'),
       ('contact_address', 'San Francisco, CA');
     `);

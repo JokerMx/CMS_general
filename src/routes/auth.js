@@ -6,7 +6,7 @@ const { isAuthenticated, isNotAuthenticated } = require('../middleware/auth');
 // Página de login
 router.get('/login', isNotAuthenticated, (req, res) => {
   res.render('login', { 
-    title: 'Iniciar Sesión | DevCraft Studio',
+    title: 'Iniciar Sesión | Devfree Studio',
     error: req.query.error,
     success: req.query.success
   });
@@ -57,7 +57,7 @@ router.post('/login', isNotAuthenticated, async (req, res) => {
 // Página de registro
 router.get('/register', isNotAuthenticated, (req, res) => {
   res.render('register', { 
-    title: 'Registro | DevCraft Studio',
+    title: 'Registro | Devfree Studio',
     error: req.query.error
   });
 });
@@ -120,7 +120,7 @@ router.get('/logout', isAuthenticated, (req, res) => {
 router.get('/profile', isAuthenticated, async (req, res) => {
   const user = await User.findById(req.session.userId);
   res.render('profile', { 
-    title: 'Mi Perfil | DevCraft Studio',
+    title: 'Mi Perfil | Devfree Studio',
     user
   });
 });

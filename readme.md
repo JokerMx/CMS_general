@@ -1,4 +1,4 @@
-# 🚀 DevCraft Studio - Sistema de Portafolio Adaptativo
+# 🚀 Devfree Studio - Sistema de Portafolio Adaptativo
 
 Sistema completo de portafolio para desarrolladores y agencias de software, construido con **Node.js + Express + EJS**. Se conecta a la **API de GitHub** para mostrar tus repositorios como proyectos, con un sistema de **plantillas adaptativas**, **temas claro/oscuro**, **planes de suscripción** y **panel de administración** para seleccionar qué proyectos mostrar.
 
@@ -94,8 +94,8 @@ Sistema completo de portafolio para desarrolladores y agencias de software, cons
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/devcraft-studio.git
-cd devcraft-studio
+git clone https://github.com/tu-usuario/Devfree-studio.git
+cd Devfree-studio
 
 # 2. Instalar dependencias
 npm install
