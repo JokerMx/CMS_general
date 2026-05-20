@@ -24,7 +24,7 @@
           style="color: var(--text); text-decoration: none; font-weight: 500;">Contacto</a></li>
       <li><a href="/plans" style="color: var(--text); text-decoration: none; font-weight: 500;">Planes</a></li>
 
-      <% if (typeof user !== 'undefined' && user) { %>
+      <% if (typeof user !=='undefined' && user) { %>
         <li>
           <a href="/profile"
             style="display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 6px 14px; border-radius: 50px; background: var(--badge-bg); border: 1px solid var(--border);">
@@ -37,27 +37,29 @@
             </span>
           </a>
         </li>
-        <% if (user.role === 'admin' || user.role === 'owner') { %>
-          <li><a href="/admin/users" style="color: var(--accent); text-decoration: none; font-weight: 600;">Admin</a></li>
-        <% } %>
-        <li><a href="/logout" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">Salir</a></li>
-      <% } else { %>
-        <li>
-          <a href="/login"
-            style="background: var(--gradient); color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Iniciar
-            Sesión</a>
-        </li>
-      <% } %>
+        <% if (user.role==='admin' || user.role==='owner' ) { %>
+          <li><a href="/admin" style="color: var(--accent); text-decoration: none; font-weight: 600;">Admin</a>
+          </li>
+          <% } %>
+            <li><a href="/logout"
+                style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">Salir</a></li>
+            <% } else { %>
+              <li>
+                <a href="/login"
+                  style="background: var(--gradient); color: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 0.9rem; font-weight: 600;">Iniciar
+                  Sesión</a>
+              </li>
+              <% } %>
 
-      <!-- Botón tema -->
-      <li>
-        <a href="/toggle-theme?current=<%= theme %>"
-          style="background: var(--card-bg); padding: 8px 12px; border-radius: 50px; border: 1px solid var(--border); font-size: 1.2rem; text-decoration: none; cursor: pointer; transition: transform 0.2s; display: inline-block;"
-          onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
-          title="Cambiar tema claro/oscuro">
-          <%= theme === 'dark' ? '☀️' : '🌙' %>
-        </a>
-      </li>
+                <!-- Botón tema -->
+                <li>
+                  <a href="/toggle-theme?current=<%= theme %>"
+                    style="background: var(--card-bg); padding: 8px 12px; border-radius: 50px; border: 1px solid var(--border); font-size: 1.2rem; text-decoration: none; cursor: pointer; transition: transform 0.2s; display: inline-block;"
+                    onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                    title="Cambiar tema claro/oscuro">
+                    <%= theme==='dark' ? '☀️' : '🌙' %>
+                  </a>
+                </li>
     </ul>
 
     <!-- Botón hamburguesa (móvil) -->
@@ -113,30 +115,28 @@
 
       <li style="border-top: 1px solid var(--border); margin: 5px 0;"></li>
 
-      <% if (typeof user !== 'undefined' && user) { %>
+      <% if (typeof user !=='undefined' && user) { %>
         <li><a href="/profile" onclick="closeSidebar()"
             style="display: block; padding: 12px 15px; border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500;">👤
             Mi Perfil</a></li>
-        <% if (user.role === 'admin' || user.role === 'owner') { %>
-          <li><a href="/admin/users" onclick="closeSidebar()"
-              style="display: block; padding: 12px 15px; border-radius: 10px; color: var(--accent); text-decoration: none; font-weight: 600;">⚙️
-              Admin</a></li>
-        <% } %>
-        <li><a href="/logout" onclick="closeSidebar()"
-            style="display: block; padding: 12px 15px; border-radius: 10px; color: #ff6b6b; text-decoration: none; font-weight: 500;">🚪
-            Salir</a></li>
-      <% } else { %>
-        <li><a href="/login" onclick="closeSidebar()"
-            style="display: block; text-align: center; background: var(--gradient); color: white; padding: 14px; border-radius: 50px; text-decoration: none; font-weight: 600; margin-top: 10px;">Iniciar
-            Sesión</a></li>
-      <% } %>
+        <% if (user.role==='admin' || user.role==='owner' ) { %>
+          <li><a href="/admin" style="color: var(--accent); text-decoration: none; font-weight: 600;">Admin</a></li>
+          <% } %>
+            <li><a href="/logout" onclick="closeSidebar()"
+                style="display: block; padding: 12px 15px; border-radius: 10px; color: #ff6b6b; text-decoration: none; font-weight: 500;">🚪
+                Salir</a></li>
+            <% } else { %>
+              <li><a href="/login" onclick="closeSidebar()"
+                  style="display: block; text-align: center; background: var(--gradient); color: white; padding: 14px; border-radius: 50px; text-decoration: none; font-weight: 600; margin-top: 10px;">Iniciar
+                  Sesión</a></li>
+              <% } %>
 
-      <li>
-        <a href="/toggle-theme?current=<%= theme %>" onclick="closeSidebar()"
-          style="display: block; padding: 12px 15px; border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500; background: var(--badge-bg); text-align: center;">
-          <%= theme === 'dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro' %>
-        </a>
-      </li>
+                <li>
+                  <a href="/toggle-theme?current=<%= theme %>" onclick="closeSidebar()"
+                    style="display: block; padding: 12px 15px; border-radius: 10px; color: var(--text); text-decoration: none; font-weight: 500; background: var(--badge-bg); text-align: center;">
+                    <%= theme==='dark' ? '☀️ Modo Claro' : '🌙 Modo Oscuro' %>
+                  </a>
+                </li>
     </ul>
   </nav>
 </aside>

@@ -155,12 +155,36 @@ app.get('/welcome', isAuthenticated, async (req, res) => {
   } catch (error) { res.redirect('/'); }
 });
 
-app.get('/register', isNotAuthenticated, async (req, res) => {
+app.get('/login', isNotAuthenticated, async (req, res) => {
   try {
-    const bodyHtml = await engine.render('register.ejs', { error: req.query.error || null }, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { title: 'Registro | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml }, req.templateSets);
+    // ✅ Detectar si viene de registro exitoso
+    const showRegisterModal = req.session.justRegistered === true;
+    const newUsername = req.session.newUsername || '';
+    req.session.justRegistered = false;
+    req.session.newUsername = '';
+
+    const bodyHtml = await engine.render('login.ejs', {
+      error: req.query.error || null,
+      success: req.query.success || null,
+      email: '',
+      showRegisterModal: showRegisterModal,
+      newUsername: newUsername
+    }, req.templateSets);
+
+    const fullHtml = await engine.render('layout.ejs', {
+      title: 'Iniciar Sesión | DevFree',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: null,
+      userPlan: null,
+      siteSettings: res.locals.siteSettings || {},
+      body: bodyHtml
+    }, req.templateSets);
+
     res.send(fullHtml);
-  } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p>`); }
+  } catch (error) {
+    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
+  }
 });
 
 app.post('/register', isNotAuthenticated, async (req, res) => {
@@ -174,7 +198,15 @@ app.post('/register', isNotAuthenticated, async (req, res) => {
     if (await User.findByEmail(email)) return res.redirect('/register?error=El email ya está registrado');
     if (await User.findByUsername(username)) return res.redirect('/register?error=El nombre de usuario ya está en uso');
     await User.create({ username, email, password, fullName });
-    res.redirect('/login?success=Cuenta creada exitosamente');
+    req.session.justRegistered = true;
+    req.session.newUsername = username;
+
+    req.session.save((err) => {
+      if (err) return res.redirect('/login?success=Cuenta creada exitosamente');
+      res.redirect('/login?registered=1');
+    });
+
+
   } catch (error) { res.redirect('/register?error=Error al crear la cuenta'); }
 });
 
@@ -523,13 +555,54 @@ app.post('/api/site-settings', isAuthenticated, isAdmin, async (req, res) => {
 // CONTACTO
 // ==========================================
 
-app.post('/contact', (req, res) => {
-  const { name, email, message } = req.body;
-  console.log('📩 Contacto recibido:');
-  console.log(`   Nombre: ${name}`);
-  console.log(`   Email: ${email}`);
-  console.log(`   Mensaje: ${message}`);
-  res.json({ success: true, message: '¡Mensaje recibido! Te contactaremos pronto.' });
+const emailService = require('./services/emailService');
+
+// Inicializar email al iniciar servidor (agregar en start())
+emailService.init();
+
+app.post('/contact', async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !message) {
+      return res.json({ success: false, error: 'Nombre, email y mensaje son obligatorios' });
+    }
+
+    console.log('📩 Contacto recibido:');
+    console.log(`   Nombre: ${name}`);
+    console.log(`   Email: ${email}`);
+    console.log(`   Asunto: ${subject || 'Sin asunto'}`);
+
+    // 1. Guardar en base de datos
+    try {
+      const pool = require('./database').getPool();
+      if (pool) {
+        await pool.query(
+          'INSERT INTO contact_messages (name, email, subject, message, created_at) VALUES (?, ?, ?, ?, NOW())',
+          [name, email, subject || null, message]
+        );
+        console.log('✅ Mensaje guardado en BD');
+      }
+    } catch (dbError) {
+      console.error('⚠️ Error al guardar en BD:', dbError.message);
+    }
+
+    // 2. Enviar email de notificación
+    const emailSent = await emailService.sendContactNotification({ name, email, subject, message });
+
+    // 3. Enviar auto-respuesta al remitente
+    await emailService.sendAutoReply({ name, email });
+
+    res.json({
+      success: true,
+      message: emailSent
+        ? '✅ ¡Mensaje enviado! Te contactaremos pronto. Revisa tu email.'
+        : '✅ ¡Mensaje recibido! Te contactaremos pronto.'
+    });
+  } catch (error) {
+    console.error('❌ Error en contacto:', error.message);
+    res.json({ success: false, error: 'Error al enviar el mensaje' });
+  }
 });
 
 // ==========================================
@@ -987,6 +1060,34 @@ app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
   }
 });
 
+// API para obtener mensajes de contacto
+app.get('/api/admin/messages', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const pool = require('./database').getPool();
+    if (!pool) return res.json({ messages: [] });
+
+    const [messages] = await pool.query(
+      'SELECT * FROM contact_messages ORDER BY created_at DESC LIMIT 50'
+    );
+    res.json({ success: true, messages });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Marcar mensaje como leído
+app.post('/api/admin/messages/:id/read', isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const pool = require('./database').getPool();
+    if (!pool) return res.json({ success: false });
+
+    await pool.query('UPDATE contact_messages SET readed = 1 WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
 // ==========================================
 // 404 - SIEMPRE AL FINAL
 // ==========================================
@@ -1030,6 +1131,7 @@ async function start() {
 
   if (dbReady) {
     console.log('✅ Base de datos lista');
+    emailService.init();
   } else {
     console.warn('⚠️  El sistema funcionará sin persistencia en base de datos');
     console.warn('   Los datos se guardarán solo en cookies/sesión\n');
