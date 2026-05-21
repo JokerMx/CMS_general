@@ -1,91 +1,54 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>404 - Página no encontrada | Devfree Studio</title>
-  <style>
-    :root {
-      --bg: #f8f9fa;
-      --text: #2d3436;
-      --text-secondary: #636e72;
-      --accent: #6c5ce7;
-      --accent2: #a29bfe;
-      --gradient: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    }
-    .dark-theme {
-      --bg: #0f0f1a;
-      --text: #e0e0e0;
-      --text-secondary: #aaa;
-      --accent: #bb86fc;
-      --accent2: #03dac5;
-      --gradient: linear-gradient(135deg, #bb86fc, #03dac5);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
-    }
-    .container {
-      text-align: center;
-      padding: 40px;
-    }
-    .error-code {
-      font-size: 8rem;
-      font-weight: 900;
-      background: var(--gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1;
-      margin-bottom: 10px;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 15px;
-    }
-    p {
-      color: var(--text-secondary);
-      margin-bottom: 30px;
-      font-size: 1.1rem;
-    }
-    .btn {
-      display: inline-block;
-      background: var(--gradient);
-      color: white;
-      padding: 15px 35px;
-      border-radius: 50px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 1.1rem;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 30px rgba(108, 92, 231, 0.3);
-    }
-    .animation {
-      font-size: 4rem;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-15px); }
-    }
-  </style>
-</head>
-<body class="<%= typeof theme !== 'undefined' && theme === 'dark' ? 'dark-theme' : '' %>">
-  <div class="container">
-    <div class="animation">🔍</div>
-    <div class="error-code">404</div>
-    <h1>Página no encontrada</h1>
-    <p>Lo sentimos, la página que buscas no existe o ha sido movida.</p>
-    <a href="/" class="btn">← Volver al inicio</a>
+<div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; text-align: center;">
+  <div style="max-width: 500px;">
+    
+    <!-- Ícono animado -->
+    <div style="font-size: 5rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite;">
+      🔍
+    </div>
+    
+    <!-- Código de error -->
+    <h1 style="font-size: 6rem; font-weight: 900; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 10px;">
+      404
+    </h1>
+    
+    <!-- Título -->
+    <h2 style="font-size: 1.8rem; color: var(--text); margin-bottom: 15px;">
+      Página no encontrada
+    </h2>
+    
+    <!-- Descripción -->
+    <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6; margin-bottom: 30px;">
+      Lo sentimos, la página que buscas no existe o ha sido movida. 
+      Verifica la URL o vuelve al inicio.
+    </p>
+    
+    <!-- Botones -->
+    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+      <a href="/" style="background: var(--gradient); color: white; padding: 14px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(108,92,231,0.3); display: inline-block;"
+         onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(108,92,231,0.4)'"
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(108,92,231,0.3)'">
+        ← Volver al inicio
+      </a>
+      <a href="/contact-page" style="background: var(--card-bg); color: var(--text); padding: 14px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 1rem; border: 2px solid var(--border); transition: all 0.3s; display: inline-block;"
+         onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='var(--accent)'"
+         onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--border)'">
+        📧 Contactar
+      </a>
+    </div>
+    
+    <!-- Enlaces rápidos -->
+    <div style="margin-top: 40px; padding-top: 25px; border-top: 1px solid var(--border); display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+      <a href="/services" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Servicios</a>
+      <a href="/portfolio" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Portafolio</a>
+      <a href="/plans" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Planes</a>
+      <a href="/login" style="color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'">Iniciar Sesión</a>
+    </div>
   </div>
-</body>
-</html>
+</div>
+
+<style>
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+</style>

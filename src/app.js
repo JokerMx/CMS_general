@@ -41,7 +41,6 @@ app.use(async (req, res, next) => {
 
   try {
     res.locals.siteSettings = await Config.getSiteSettings();
-    console.log('📋 siteSettings cargados:', Object.keys(res.locals.siteSettings).length, 'claves');
   } catch (e) {
     res.locals.siteSettings = {};
     console.error('Error al cargar siteSettings:', e.message);
@@ -113,50 +112,6 @@ function getExampleTechStack(filteredProjects) {
 // ==========================================
 app.get('/login', isNotAuthenticated, async (req, res) => {
   try {
-    const bodyHtml = await engine.render('login.ejs', { error: req.query.error || null, success: req.query.success || null, email: '' }, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { title: 'Iniciar Sesión | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user: null, userPlan: null, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
-    res.send(fullHtml);
-  } catch (error) { res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`); }
-});
-
-app.post('/login', isNotAuthenticated, async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.redirect('/login?error=Todos los campos son obligatorios');
-    const user = await User.findByEmail(email);
-    if (!user) return res.redirect('/login?error=Email o contraseña incorrectos');
-    const isValid = await User.verifyPassword(password, user.password);
-    if (!isValid) return res.redirect('/login?error=Email o contraseña incorrectos');
-    req.session.userId = user.id;
-    req.session.userPlan = user.plan || 'free';
-    req.session.userEmail = user.email;
-    req.session.userName = user.full_name || user.username;
-    req.session.justLoggedIn = true;
-    req.session.save((err) => {
-      if (err) return res.redirect('/login?error=Error al iniciar sesión');
-      User.updateLastLogin(user.id).catch(() => { });
-      console.log('✅ Login exitoso:', user.username);
-      res.redirect('/welcome');
-    });
-  } catch (error) { res.redirect('/login?error=Error al iniciar sesión'); }
-});
-
-app.get('/welcome', isAuthenticated, async (req, res) => {
-  try {
-    const showModal = req.session.justLoggedIn === true;
-    req.session.justLoggedIn = false;
-    let user = null;
-    try { user = await User.findById(req.session.userId); } catch (e) { }
-    if (!user) user = { id: req.session.userId, username: req.session.userName || 'Usuario', email: req.session.userEmail || '', role: 'user', plan: req.session.userPlan || 'free' };
-    const data = { title: 'Bienvenido | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user, userPlan: res.locals.userPlan || null, showModal, returnTo: '/admin' };
-    const bodyHtml = await engine.render('welcome.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
-    res.send(fullHtml);
-  } catch (error) { res.redirect('/'); }
-});
-
-app.get('/login', isNotAuthenticated, async (req, res) => {
-  try {
     // ✅ Detectar si viene de registro exitoso
     const showRegisterModal = req.session.justRegistered === true;
     const newUsername = req.session.newUsername || '';
@@ -187,27 +142,94 @@ app.get('/login', isNotAuthenticated, async (req, res) => {
   }
 });
 
+app.post('/login', isNotAuthenticated, async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.redirect('/login?error=Todos los campos son obligatorios');
+    const user = await User.findByEmail(email);
+    if (!user) return res.redirect('/login?error=Email o contraseña incorrectos');
+    const isValid = await User.verifyPassword(password, user.password);
+    if (!isValid) return res.redirect('/login?error=Email o contraseña incorrectos');
+    req.session.userId = user.id;
+    req.session.userPlan = user.plan || 'free';
+    req.session.userEmail = user.email;
+    req.session.userName = user.full_name || user.username;
+    req.session.justLoggedIn = true;
+    req.session.save((err) => {
+      if (err) return res.redirect('/login?error=Error al iniciar sesión');
+      User.updateLastLogin(user.id).catch(() => { });
+      console.log('✅ Login exitoso:', user.username);
+      res.redirect('/welcome');
+    });
+  } catch (error) { res.redirect('/login?error=Error al iniciar sesión'); }
+});
+
+// Página de registro
+app.get('/register', isNotAuthenticated, async (req, res) => {
+  try {
+    const bodyHtml = await engine.render('register.ejs', {
+      error: req.query.error || null
+    }, req.templateSets);
+
+    const fullHtml = await engine.render('layout.ejs', {
+      title: 'Registro | DevFree',
+      theme: req.theme,
+      currentYear: new Date().getFullYear(),
+      user: null,
+      userPlan: null,
+      body: bodyHtml,
+      siteSettings: res.locals.siteSettings || {}
+    }, req.templateSets);
+
+    res.send(fullHtml);
+  } catch (error) {
+    console.error('❌ Error en registro:', error.message);
+    res.status(500).send(`<h1>Error</h1><p>${error.message}</p><a href="/">Volver</a>`);
+  }
+});
+
 app.post('/register', isNotAuthenticated, async (req, res) => {
   try {
     const { username, email, password, confirmPassword, fullName } = req.body;
-    if (!username || !email || !password || !confirmPassword) return res.redirect('/register?error=Todos los campos son obligatorios');
-    if (password !== confirmPassword) return res.redirect('/register?error=Las contraseñas no coinciden');
-    if (password.length < 6) return res.redirect('/register?error=La contraseña debe tener al menos 6 caracteres');
-    if (username.length < 3) return res.redirect('/register?error=El nombre de usuario debe tener al menos 3 caracteres');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.redirect('/register?error=Ingresa un email válido');
-    if (await User.findByEmail(email)) return res.redirect('/register?error=El email ya está registrado');
-    if (await User.findByUsername(username)) return res.redirect('/register?error=El nombre de usuario ya está en uso');
+    
+    if (!username || !email || !password || !confirmPassword) 
+      return res.redirect('/register?error=Todos los campos son obligatorios');
+    if (password !== confirmPassword) 
+      return res.redirect('/register?error=Las contraseñas no coinciden');
+    if (password.length < 6) 
+      return res.redirect('/register?error=La contraseña debe tener al menos 6 caracteres');
+    if (username.length < 3) 
+      return res.redirect('/register?error=El nombre de usuario debe tener al menos 3 caracteres');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) 
+      return res.redirect('/register?error=Ingresa un email válido');
+    if (await User.findByEmail(email)) 
+      return res.redirect('/register?error=El email ya está registrado');
+    if (await User.findByUsername(username)) 
+      return res.redirect('/register?error=El nombre de usuario ya está en uso');
+    
     await User.create({ username, email, password, fullName });
-    req.session.justRegistered = true;
-    req.session.newUsername = username;
 
-    req.session.save((err) => {
-      if (err) return res.redirect('/login?success=Cuenta creada exitosamente');
-      res.redirect('/login?registered=1');
-    });
+    console.log(`✅ Registro: ${username} (${email})`);
+    res.redirect('/login?success=Cuenta creada exitosamente. Inicia sesión.');
+    
+  } catch (error) {
+    console.error('❌ Error en registro:', error.message);
+    res.redirect('/register?error=Error al crear la cuenta');
+  }
+});
 
-
-  } catch (error) { res.redirect('/register?error=Error al crear la cuenta'); }
+app.get('/welcome', isAuthenticated, async (req, res) => {
+  try {
+    const showModal = req.session.justLoggedIn === true;
+    req.session.justLoggedIn = false;
+    let user = null;
+    try { user = await User.findById(req.session.userId); } catch (e) { }
+    if (!user) user = { id: req.session.userId, username: req.session.userName || 'Usuario', email: req.session.userEmail || '', role: 'user', plan: req.session.userPlan || 'free' };
+    const data = { title: 'Bienvenido | Devfree Studio', theme: req.theme, currentYear: new Date().getFullYear(), user, userPlan: res.locals.userPlan || null, showModal, returnTo: '/admin' };
+    const bodyHtml = await engine.render('welcome.ejs', data, req.templateSets);
+    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
+    res.send(fullHtml);
+  } catch (error) { res.redirect('/'); }
 });
 
 app.get('/logout', (req, res) => {
@@ -248,7 +270,6 @@ app.get('/', async (req, res) => {
         console.log('📦 BD selectedProjects:', JSON.stringify(selectedProjects));
       } catch (e) { }
     }
-    console.log('📦 BD selectedProjects:', JSON.stringify(selectedProjects));
     console.log('📦 userId:', userId);
     console.log('📦 isAuthenticated:', isAuthenticated);
     let filteredProjects;
@@ -949,36 +970,6 @@ app.get('/services', async (req, res) => {
       userPlan: res.locals.userPlan || null
     };
     const bodyHtml = await engine.render('services-page.ejs', data, req.templateSets);
-    const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
-    res.send(fullHtml);
-  } catch (error) {
-    res.redirect('/');
-  }
-});
-
-app.get('/portfolio', async (req, res) => {
-  try {
-    const githubService = await getGitHubService(req);
-    let projects = [];
-    if (githubService) {
-      try { projects = await githubService.getPortfolioProjects(); } catch (e) { }
-    }
-    if (projects.length === 0) {
-      projects = [
-        { id: 1, name: 'ecommerce-api', description: 'API RESTful para e-commerce', url: '#', language: 'JavaScript', stars: 24, forks: 8, isPrivate: false, techBadges: [{ name: 'Node.js', color: '#339933' }] },
-        { id: 2, name: 'react-dashboard', description: 'Dashboard con React', url: '#', language: 'TypeScript', stars: 18, forks: 5, isPrivate: false, techBadges: [{ name: 'React', color: '#61dafb' }] },
-        { id: 3, name: 'ai-chatbot', description: 'Chatbot con NLP', url: '#', language: 'Python', stars: 32, forks: 12, isPrivate: true, techBadges: [{ name: 'Python', color: '#3776ab' }] }
-      ];
-    }
-    const data = {
-      title: 'Portafolio | Devfree Studio',
-      theme: req.theme,
-      currentYear: new Date().getFullYear(),
-      user: res.locals.user || null,
-      userPlan: res.locals.userPlan || null,
-      projects: projects
-    };
-    const bodyHtml = await engine.render('portfolio-page.ejs', data, req.templateSets);
     const fullHtml = await engine.render('layout.ejs', { ...data, body: bodyHtml, siteSettings: res.locals.siteSettings || {} }, req.templateSets);
     res.send(fullHtml);
   } catch (error) {
